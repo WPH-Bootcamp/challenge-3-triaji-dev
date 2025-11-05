@@ -17,13 +17,13 @@
     "assignment",
     "learning"
   ],
-  "author": "Your Name Here",
+  "author": "Tri Aji Prabandaru",
   "license": "ISC",
   "engines": {
     "node": ">=14.0.0"
   },
   "repository": {
     "type": "git",
-    "url": "your-repo-url"
+    "url": "https://github.com/WPH-Bootcamp/challenge-3-triaji-dev"
   }
 }

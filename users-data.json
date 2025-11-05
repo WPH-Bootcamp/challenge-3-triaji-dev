@@ -1,0 +1,26 @@
+{
+  "Budi": {
+    "username": "Budi",
+    "realName": "Budi Doremi",
+    "joinDate": "2025-11-05T23:45:21.799Z",
+    "profile": {
+      "totalHabits": 1,
+      "completedThisWeek": 0,
+      "totalCompletions": 0,
+      "longestStreak": 0
+    },
+    "habits": [
+      {
+        "id": 1762386428673.998,
+        "name": "Tidur",
+        "category": "Kesehatan",
+        "targetFrequency": 7,
+        "completions": [],
+        "createdAt": "2025-11-05T23:47:08.673Z",
+        "currentStreak": 0,
+        "longestStreak": 0
+      }
+    ]
+  },
+  "currentUser": "Budi"
+}
