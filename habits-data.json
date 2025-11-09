@@ -1,0 +1,93 @@
+{
+  "profiles": [
+    {
+      "id": 1762663161093.721,
+      "name": "Adi",
+      "joinDate": "2025-11-09T04:39:21.093Z",
+      "totalHabits": 0,
+      "completedThisWeek": 0,
+      "currentStreak": 0,
+      "longestStreak": 0
+    },
+    {
+      "id": 1762663204604.098,
+      "name": "Andi",
+      "joinDate": "2025-11-09T04:40:04.604Z",
+      "totalHabits": 0,
+      "completedThisWeek": 0,
+      "currentStreak": 0,
+      "longestStreak": 0
+    },
+    {
+      "id": 1762673102400.5486,
+      "name": "Yaya",
+      "joinDate": "2025-11-09T07:25:02.400Z",
+      "totalHabits": 0,
+      "completedThisWeek": 0,
+      "currentStreak": 0,
+      "longestStreak": 0
+    }
+  ],
+  "currentProfileId": 1762673102400.5486,
+  "profileHabits": {
+    "1762663161093.721": [],
+    "1762663204604.098": [],
+    "1762673102400.5486": [
+      {
+        "id": 1762673142144.6738,
+        "name": "Minum Air 8 Gelas",
+        "targetFrequency": 7,
+        "completions": [
+          "2025-11-08T17:00:00.000Z"
+        ],
+        "createdAt": "2025-11-09T07:25:42.144Z",
+        "category": "Kesehatan",
+        "priority": "normal"
+      },
+      {
+        "id": 1762673142144.284,
+        "name": "Olahraga 30 Menit",
+        "targetFrequency": 5,
+        "completions": [
+          "2025-11-08T17:00:00.000Z"
+        ],
+        "createdAt": "2025-11-09T07:25:42.144Z",
+        "category": "Kesehatan",
+        "priority": "normal"
+      },
+      {
+        "id": 1762673142145.8254,
+        "name": "Membaca Buku 30 Menit",
+        "targetFrequency": 5,
+        "completions": [
+          "2025-11-08T17:00:00.000Z"
+        ],
+        "createdAt": "2025-11-09T07:25:42.145Z",
+        "category": "Produktivitas",
+        "priority": "normal"
+      },
+      {
+        "id": 1762673142145.3362,
+        "name": "Meditasi 10 Menit",
+        "targetFrequency": 7,
+        "completions": [
+          "2025-11-08T17:00:00.000Z"
+        ],
+        "createdAt": "2025-11-09T07:25:42.145Z",
+        "category": "Kesehatan",
+        "priority": "normal"
+      },
+      {
+        "id": 1762673142146.7378,
+        "name": "Belajar Coding",
+        "targetFrequency": 6,
+        "completions": [
+          "2025-11-08T17:00:00.000Z"
+        ],
+        "createdAt": "2025-11-09T07:25:42.146Z",
+        "category": "Produktivitas",
+        "priority": "normal"
+      }
+    ]
+  }
+}
