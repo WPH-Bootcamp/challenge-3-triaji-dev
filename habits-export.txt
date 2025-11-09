@@ -1,0 +1,52 @@
+============================================================
+EKSPOR DATA HABIT TRACKER
+============================================================
+
+Nama: Yaya
+Tanggal Ekspor: 9/11/2025, 14.36.40
+Total Kebiasaan: 5
+
+============================================================
+DAFTAR KEBIASAAN
+============================================================
+
+1. Minum Air 8 Gelas
+   Kategori: Kesehatan
+   Target: 7x/minggu
+   Status: AKTIF
+   Progress: 1/7 (14%)
+   Streak: 1 hari
+   Total Penyelesaian: 1x
+
+2. Olahraga 30 Menit
+   Kategori: Kesehatan
+   Target: 5x/minggu
+   Status: AKTIF
+   Progress: 1/5 (20%)
+   Streak: 1 hari
+   Total Penyelesaian: 1x
+
+3. Membaca Buku 30 Menit
+   Kategori: Produktivitas
+   Target: 5x/minggu
+   Status: AKTIF
+   Progress: 1/5 (20%)
+   Streak: 1 hari
+   Total Penyelesaian: 1x
+
+4. Meditasi 10 Menit
+   Kategori: Kesehatan
+   Target: 7x/minggu
+   Status: AKTIF
+   Progress: 1/7 (14%)
+   Streak: 1 hari
+   Total Penyelesaian: 1x
+
+5. Belajar Coding
+   Kategori: Produktivitas
+   Target: 6x/minggu
+   Status: AKTIF
+   Progress: 1/6 (17%)
+   Streak: 1 hari
+   Total Penyelesaian: 1x
+
