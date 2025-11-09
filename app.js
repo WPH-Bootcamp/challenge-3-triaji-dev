@@ -6,61 +6,75 @@
 // TANGGAL: 9 November 2025
 // ============================================
 
-const readline = require('readline');
-const fs = require('fs');
-const path = require('path');
+// Import module Node.js yang diperlukan
+const readline = require('readline'); // Untuk input/output terminal
+const fs = require('fs');             // Untuk operasi file system
+const path = require('path');          // Untuk manipulasi path file
 
 // ============================================
 // CONSTANTS & CONFIGURATION
 // ============================================
+// Konfigurasi global aplikasi
 const CONFIG = {
-    dataFile: path.join(__dirname, 'habits-data.json'),
-    reminderInterval: 10000,
-    daysInWeek: 7,
-    colors: {
-        reset: '\x1b[0m',
-        bright: '\x1b[1m',
-        green: '\x1b[32m',
-        yellow: '\x1b[33m',
-        red: '\x1b[31m',
-        cyan: '\x1b[36m',
-        magenta: '\x1b[35m',
-        darkgray: '\x1b[90m'
+    dataFile: path.join(__dirname, 'habits-data.json'), // Path file penyimpanan data
+    reminderInterval: 10000,  // Interval reminder: 10 detik (10000ms)
+    daysInWeek: 7,            // Jumlah hari dalam seminggu
+    colors: {                 // ANSI color codes untuk styling terminal
+        reset: '\x1b[0m',     // Reset warna ke default
+        bright: '\x1b[1m',    // Text bold/terang
+        green: '\x1b[32m',    // Warna hijau (success)
+        yellow: '\x1b[33m',   // Warna kuning (warning)
+        red: '\x1b[31m',      // Warna merah (error)
+        cyan: '\x1b[36m',     // Warna cyan (header)
+        magenta: '\x1b[35m',  // Warna magenta (highlight)
+        darkgray: '\x1b[90m'  // Warna abu-abu gelap (info)
     }
 };
 
+// Setup readline interface untuk input/output terminal
 const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
+    input: process.stdin,   // Input dari keyboard
+    output: process.stdout  // Output ke terminal
 });
 
 // ============================================
 // UTILITY FUNCTIONS
 // ============================================
+
+// Object UI untuk fungsi-fungsi tampilan konsol
 const UI = {
+    // Menampilkan header dengan garis pembatas
     header: (title) => {
         console.log('\n' + '='.repeat(60));
         console.log(CONFIG.colors.cyan + title + CONFIG.colors.reset);
         console.log('='.repeat(60));
     },
+    // Menampilkan garis pemisah
     separator: () => console.log('-'.repeat(60)),
+    // Menampilkan pesan sukses dengan prefix [OK]
     success: (msg) => console.log(`\n[OK] ${msg}`),
+    // Menampilkan pesan error dengan prefix [X]
     error: (msg) => console.log(`\n[X] ${msg}`),
+    // Menampilkan pesan info dengan prefix [!]
     info: (msg) => console.log(`\n[!] ${msg}`)
 };
 
+// Object DateUtils untuk operasi tanggal
 const DateUtils = {
+    // Mendapatkan tanggal hari ini (jam 00:00:00)
     today: () => {
         const date = new Date();
         date.setHours(0, 0, 0, 0);
         return date;
     },
+    // Mendapatkan tanggal awal minggu (Minggu)
     weekStart: () => {
         const today = DateUtils.today();
         const weekStart = new Date(today);
         weekStart.setDate(today.getDate() - today.getDay());
         return weekStart;
     },
+    // Mengecek apakah dua tanggal adalah hari yang sama
     isSameDay: (date1, date2) => {
         const d1 = new Date(date1);
         const d2 = new Date(date2);
@@ -68,13 +82,16 @@ const DateUtils = {
         d2.setHours(0, 0, 0, 0);
         return d1.getTime() === d2.getTime();
     },
+    // Menghitung selisih hari antara dua tanggal
     getDaysDiff: (date1, date2) => {
         const diffTime = Math.abs(new Date(date2) - new Date(date1));
         return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     }
 };
 
+// Object FileManager untuk operasi file JSON
 const FileManager = {
+    // Membaca data dari file JSON
     read: () => {
         try {
             if (!fs.existsSync(CONFIG.dataFile)) return null;
@@ -84,6 +101,7 @@ const FileManager = {
             return null;
         }
     },
+    // Menulis data ke file JSON
     write: (data) => {
         try {
             fs.writeFileSync(CONFIG.dataFile, JSON.stringify(data, null, 2), 'utf8');
@@ -95,19 +113,36 @@ const FileManager = {
     }
 };
 
+/**
+ * Fungsi untuk mengajukan pertanyaan ke user via terminal
+ * @param {string} question - Pertanyaan yang ditampilkan
+ * @param {HabitTracker} tracker - Instance tracker untuk pause/resume reminder
+ * @param {boolean} skipPause - Jika true, reminder tidak akan di-pause
+ * @returns {Promise<string>} - Jawaban user (trimmed)
+ */
 function askQuestion(question, tracker = null, skipPause = false) {
     return new Promise((resolve) => {
+        // Pause reminder saat user sedang input (kecuali skipPause=true untuk menu pilihan)
+        // Pause reminder saat user sedang input (kecuali skipPause=true untuk menu pilihan)
         if (tracker && !skipPause) tracker.pauseReminder?.();
         
         rl.question(question, (answer) => {
+            // Resume reminder setelah user selesai input
             if (tracker && !skipPause) tracker.resumeReminder?.();
+            // Reset timer reminder agar countdown ulang dari 10 detik
             tracker?.resetReminder?.();
             resolve(answer.trim());
         });
     });
 }
 
+/**
+ * Fungsi untuk menanyakan kategori kebiasaan dengan pilihan shortcut
+ * @param {HabitTracker} tracker - Instance tracker
+ * @returns {Promise<string>} - Nama kategori yang dipilih
+ */
 async function askCategory(tracker) {
+    // Mapping huruf ke nama kategori lengkap
     const categoryMap = {
         'K': 'Kesehatan', 'k': 'Kesehatan',
         'P': 'Produktivitas', 'p': 'Produktivitas',
@@ -118,34 +153,55 @@ async function askCategory(tracker) {
     console.log('\nKategori: K-Kesehatan | P-Produktivitas | H-Hobi | U-Umum | L-Custom');
     const choice = await askQuestion('Pilihan (K/P/H/U/L): ', tracker);
     
+    // Jika pilih L (Custom), tanyakan nama kategori
     if (choice.toUpperCase() === 'L') {
         return (await askQuestion('Nama kategori: ', tracker)) || 'Umum';
     }
+    // Return kategori dari mapping atau default 'Umum'
     return categoryMap[choice] || 'Umum';
 }
 
 // ============================================
 // USER PROFILE CLASS
 // ============================================
+/**
+ * Class untuk merepresentasikan profil pengguna
+ * Setiap user memiliki profil dengan stats dan riwayat tersendiri
+ */
 class UserProfile {
     constructor(name, id = null) {
-        this.id = id || Date.now() + Math.random();
-        this.name = name;
-        this.joinDate = new Date();
-        this.currentStreak = 0;
-        this.longestStreak = 0;
+        this.id = id || Date.now() + Math.random();  // ID unik untuk setiap profil
+        this.name = name;                             // Nama pengguna
+        this.joinDate = new Date();                   // Tanggal bergabung
+        this.currentStreak = 0;                       // Streak saat ini (hari berturut-turut)
+        this.longestStreak = 0;                       // Streak terpanjang yang pernah dicapai
     }
     
+    /**
+     * Update statistik profil berdasarkan habits yang dimiliki
+     * @param {Array<Habit>} habits - Array kebiasaan milik profil ini
+     */
     updateStats(habits) {
+        // Cari streak terpanjang dari semua habits
         const maxStreak = Math.max(0, ...habits.map(h => h.getCurrentStreak()));
         this.currentStreak = maxStreak;
+        // Update longest streak jika current streak lebih tinggi
         if (maxStreak > this.longestStreak) this.longestStreak = maxStreak;
     }
     
+    /**
+     * Menghitung berapa hari user sudah bergabung
+     * @returns {number} - Jumlah hari sejak bergabung
+     */
     getDaysJoined() {
         return DateUtils.getDaysDiff(this.joinDate, new Date());
     }
     
+    /**
+     * Menghitung jumlah kebiasaan yang selesai minggu ini
+     * @param {Array<Habit>} habits - Array kebiasaan
+     * @returns {number} - Jumlah kebiasaan selesai
+     */
     getCompletedThisWeek(habits) {
         return habits.filter(h => h.isCompletedThisWeek()).length;
     }
@@ -154,60 +210,96 @@ class UserProfile {
 // ============================================
 // HABIT CLASS
 // ============================================
+/**
+ * Class untuk merepresentasikan satu kebiasaan
+ * Menyimpan data kebiasaan, completion history, dan progress tracking
+ */
 class Habit {
     constructor(name, targetFrequency, category = 'Umum') {
-        this.id = Date.now() + Math.random();
-        this.name = name;
-        this.targetFrequency = targetFrequency;
-        this.completions = [];
-        this.createdAt = new Date();
-        this.category = category;
+        this.id = Date.now() + Math.random();         // ID unik untuk setiap habit
+        this.name = name;                              // Nama kebiasaan
+        this.targetFrequency = targetFrequency;        // Target per minggu (1-7)
+        this.completions = [];                         // Array tanggal penyelesaian (ISO string)
+        this.createdAt = new Date();                   // Tanggal habit dibuat
+        this.category = category;                      // Kategori habit
     }
     
+    /**
+     * Menandai kebiasaan selesai untuk hari ini
+     * @returns {boolean} - true jika berhasil, false jika sudah diselesaikan hari ini
+     */
     markComplete() {
         const today = DateUtils.today();
+        // Cek apakah sudah diselesaikan hari ini
         const alreadyCompleted = this.completions.some(date => 
             DateUtils.isSameDay(date, today)
         );
         
         if (alreadyCompleted) return false;
         
+        // Tambahkan tanggal hari ini ke array completions
         this.completions.push(today.toISOString());
         return true;
     }
     
+    /**
+     * Menghitung berapa kali habit diselesaikan minggu ini
+     * @returns {number} - Jumlah penyelesaian minggu ini
+     */
     getThisWeekCompletions() {
         const weekStart = DateUtils.weekStart();
         return this.completions.filter(date => new Date(date) >= weekStart).length;
     }
     
+    /**
+     * Mengecek apakah habit sudah mencapai target minggu ini
+     * @returns {boolean} - true jika sudah selesai, false jika belum
+     */
     isCompletedThisWeek() {
         return this.getThisWeekCompletions() >= this.targetFrequency;
     }
     
+    /**
+     * Mengecek apakah habit sudah diselesaikan hari ini
+     * @returns {boolean} - true jika sudah, false jika belum
+     */
     isCompletedToday() {
         const today = DateUtils.today();
         return this.completions.some(date => DateUtils.isSameDay(date, today));
     }
     
+    /**
+     * Menghitung persentase progress minggu ini
+     * @returns {number} - Persentase progress (0-100)
+     */
     getProgressPercentage() {
         return Math.min((this.getThisWeekCompletions() / this.targetFrequency) * 100, 100);
     }
     
+    /**
+     * Membuat progress bar visual dengan karakter █ dan ▒
+     * @returns {string} - Progress bar string (30 karakter + persentase)
+     */
     getProgressBar() {
         const percentage = this.getProgressPercentage();
-        const filled = Math.floor(percentage / 3.33); // 30 chars total
+        const filled = Math.floor(percentage / 3.33); // 30 chars total (100/30 = 3.33)
         const bar = '█'.repeat(filled) + '▒'.repeat(30 - filled);
         return `${bar} ${percentage.toFixed(0)}%`;
     }
     
+    /**
+     * Menghitung streak (hari berturut-turut) habit diselesaikan
+     * @returns {number} - Jumlah hari berturut-turut
+     */
     getCurrentStreak() {
         if (this.completions.length === 0) return 0;
         
+        // Sort tanggal dari terbaru ke terlama
         const sorted = this.completions.map(d => new Date(d)).sort((a, b) => b - a);
         const today = DateUtils.today();
         let streak = 0;
         
+        // Loop dari hari ini mundur untuk hitung streak
         for (const completion of sorted) {
             const expectedDate = new Date(today);
             expectedDate.setDate(today.getDate() - streak);
@@ -216,13 +308,17 @@ class Habit {
             if (DateUtils.isSameDay(completion, expectedDate)) {
                 streak++;
             } else {
-                break;
+                break; // Streak terputus
             }
         }
         
         return streak;
     }
     
+    /**
+     * Mendapatkan icon status kebiasaan
+     * @returns {string} - Icon status: [X]=selesai minggu, [~]=selesai hari ini, [ ]=belum
+     */
     getStatusIcon() {
         if (this.isCompletedThisWeek()) return '[X]';
         if (this.isCompletedToday()) return '[~]';
@@ -233,17 +329,29 @@ class Habit {
 // ============================================
 // HABIT TRACKER CLASS
 // ============================================
+/**
+ * Class utama untuk mengelola seluruh habit tracking system
+ * Menangani multi-profil, CRUD habits, reminder, dan file persistence
+ */
 class HabitTracker {
     constructor() {
-        this.profiles = [];
-        this.currentProfile = null;
-        this.habits = [];
-        this.reminderTimer = null;
-        this.reminderEnabled = false;
-        this.loadFromFile();
+        this.profiles = [];              // Array semua profil user
+        this.currentProfile = null;      // Profil yang sedang aktif
+        this.habits = [];                // Array habits dari profil aktif
+        this.reminderTimer = null;       // Timer untuk reminder system
+        this.reminderEnabled = false;    // Status aktif/nonaktif reminder
+        this.loadFromFile();             // Load data dari file saat init
     }
     
     // ========== HABIT MANAGEMENT ==========
+    
+    /**
+     * Menambah kebiasaan baru
+     * @param {string} name - Nama kebiasaan
+     * @param {number} frequency - Target per minggu (1-7)
+     * @param {string} category - Kategori kebiasaan
+     * @returns {Habit} - Habit object yang baru dibuat
+     */
     addHabit(name, frequency, category = 'Umum') {
         const habit = new Habit(name, frequency, category);
         this.habits.push(habit);
@@ -251,10 +359,18 @@ class HabitTracker {
         return habit;
     }
     
+    /**
+     * Mengedit kebiasaan yang sudah ada
+     * @param {number} index - Nomor urut habit (1-based)
+     * @param {string} newName - Nama baru (null jika tidak diubah)
+     * @param {number} newFrequency - Target baru (null jika tidak diubah)
+     * @param {string} newCategory - Kategori baru (null jika tidak diubah)
+     */
     editHabit(index, newName, newFrequency, newCategory) {
         const habit = this.habits[index - 1];
         if (!habit) return UI.error('Kebiasaan tidak ditemukan.');
         
+        // Update hanya field yang diisi
         if (newName) habit.name = newName;
         if (newFrequency) habit.targetFrequency = newFrequency;
         if (newCategory) habit.category = newCategory;
@@ -263,6 +379,10 @@ class HabitTracker {
         UI.success(`Kebiasaan "${habit.name}" berhasil diperbarui.`);
     }
     
+    /**
+     * Menandai kebiasaan sebagai selesai hari ini
+     * @param {number} index - Nomor urut habit (1-based)
+     */
     completeHabit(index) {
         const habit = this.habits[index - 1];
         if (!habit) return UI.error('Kebiasaan tidak ditemukan.');
@@ -275,6 +395,10 @@ class HabitTracker {
         }
     }
     
+    /**
+     * Menghapus kebiasaan
+     * @param {number} index - Nomor urut habit (1-based)
+     */
     deleteHabit(index) {
         const habit = this.habits[index - 1];
         if (!habit) return UI.error('Kebiasaan tidak ditemukan.');
@@ -286,23 +410,32 @@ class HabitTracker {
     }
     
     // ========== PROFILE MANAGEMENT ==========
+    
+    /**
+     * Membuat profil baru (async karena ada user input)
+     */
     async createNewProfile() {
         UI.header('BUAT PROFIL BARU');
         const name = await askQuestion('Nama profil: ', this);
         
         if (!name) return UI.error('Nama tidak boleh kosong.');
         
+        // Simpan habits profil saat ini sebelum switch
         if (this.currentProfile) this.saveCurrentProfileHabits();
         
+        // Buat profil baru dan set sebagai aktif
         const newProfile = new UserProfile(name);
         this.profiles.push(newProfile);
         this.currentProfile = newProfile;
-        this.habits = [];
+        this.habits = [];  // Profil baru mulai dengan habits kosong
         this.saveToFile();
         
         UI.success(`Profil "${name}" berhasil dibuat dan diaktifkan!`);
     }
     
+    /**
+     * Memilih profil dari daftar profil yang ada
+     */
     async selectProfile() {
         this.displayProfiles();
         if (this.profiles.length === 0) return UI.info('Tidak ada profil tersedia.');
@@ -320,6 +453,9 @@ class HabitTracker {
         }
     }
     
+    /**
+     * Menghapus profil yang dipilih
+     */
     async deleteProfile() {
         this.displayProfiles();
         if (this.profiles.length === 0) return UI.info('Tidak ada profil.');
@@ -338,12 +474,14 @@ class HabitTracker {
             const deletedId = profile.id;
             this.profiles.splice(index, 1);
             
+            // Jika profil yang dihapus adalah profil aktif, switch ke profil lain
             if (this.currentProfile?.id === deletedId) {
                 this.currentProfile = this.profiles[0] || null;
                 if (this.currentProfile) this.loadHabitsForProfile(this.currentProfile.id);
                 else this.habits = [];
             }
             
+            // Hapus data habits profil dari file
             const data = FileManager.read() || {};
             if (data.profileHabits?.[deletedId]) delete data.profileHabits[deletedId];
             data.profiles = this.profiles;
@@ -354,20 +492,32 @@ class HabitTracker {
         }
     }
     
+    /**
+     * Switch ke profil lain
+     * @param {string|number} profileId - ID profil tujuan
+     */
     switchProfile(profileId) {
         const profile = this.profiles.find(p => p.id === profileId);
         if (!profile) return;
         
+        // Simpan habits profil saat ini
         if (this.currentProfile) this.saveCurrentProfileHabits();
+        // Set profil baru sebagai aktif
         this.currentProfile = profile;
+        // Load habits profil baru
         this.loadHabitsForProfile(profileId);
         this.saveToFile();
     }
     
+    /**
+     * Load habits dari file untuk profil tertentu
+     * @param {string|number} profileId - ID profil
+     */
     loadHabitsForProfile(profileId) {
         const data = FileManager.read();
         this.habits = [];
         
+        // Load dan reconstruct habits dari data JSON
         if (data?.profileHabits?.[profileId]) {
             data.profileHabits[profileId].forEach(hData => {
                 const habit = new Habit(hData.name || 'Kebiasaan', hData.targetFrequency || 7, hData.category || 'Umum');
@@ -379,6 +529,10 @@ class HabitTracker {
         }
     }
     
+    /**
+     * Simpan habits profil saat ini ke file
+     * (digunakan sebelum switch profil)
+     */
     saveCurrentProfileHabits() {
         if (!this.currentProfile) return;
         
@@ -388,12 +542,24 @@ class HabitTracker {
         FileManager.write(data);
     }
     
+    /**
+     * Menghitung jumlah habits yang dimiliki profil tertentu
+     * @param {string|number} profileId - ID profil
+     * @returns {number} - Jumlah habits
+     */
     getProfileHabitsCount(profileId) {
         const data = FileManager.read();
         return data?.profileHabits?.[profileId]?.length || 0;
     }
     
     // ========== DISPLAY METHODS ==========
+    
+    /**
+     * Menampilkan informasi detail profil saat ini
+     */
+    /**
+     * Menampilkan informasi detail profil saat ini
+     */
     displayProfile() {
         if (!this.currentProfile) return UI.info('Tidak ada profil aktif.');
         
@@ -408,6 +574,9 @@ class HabitTracker {
         console.log('='.repeat(60) + '\n');
     }
     
+    /**
+     * Menampilkan daftar semua profil dengan status aktif
+     */
     displayProfiles() {
         UI.header('DAFTAR PROFIL');
         
@@ -415,6 +584,7 @@ class HabitTracker {
             console.log('Belum ada profil.');
         } else {
             this.profiles.forEach((profile, i) => {
+                // Tandai profil yang sedang aktif dengan warna kuning
                 const active = this.currentProfile?.id === profile.id ? ` ${CONFIG.colors.yellow}(AKTIF)${CONFIG.colors.reset}` : '';
                 const count = this.getProfileHabitsCount(profile.id);
                 console.log(`${i + 1}. ${CONFIG.colors.bright}${profile.name}${CONFIG.colors.reset}${active} (${count} kebiasaan)`);
@@ -424,12 +594,17 @@ class HabitTracker {
         console.log('='.repeat(60) + '\n');
     }
     
+    /**
+     * Menampilkan daftar kebiasaan dengan filter
+     * @param {string} filter - Filter: 'all', 'active', atau 'completed'
+     */
     displayHabits(filter = 'all') {
         if (!this.currentProfile) return UI.info('Tidak ada profil aktif.');
         
         let habits = this.habits;
         let title = 'SEMUA KEBIASAAN';
         
+        // Filter habits berdasarkan parameter
         if (filter === 'active') {
             habits = this.habits.filter(h => !h.isCompletedThisWeek());
             title = 'KEBIASAAN AKTIF';
@@ -440,15 +615,18 @@ class HabitTracker {
         
         UI.header(title);
         
+        // Tampilkan pesan sesuai kondisi
         if (habits.length === 0) {
             if (this.habits.length === 0) {
                 console.log('Belum ada kebiasaan.');
             } else {
+                // Pesan khusus untuk filter active/completed
                 console.log(filter === 'active' ? 
                     CONFIG.colors.green + 'Selamat! Semua kebiasaan selesai! 🎉' + CONFIG.colors.reset :
                     'Belum ada kebiasaan selesai minggu ini.');
             }
         } else {
+            // Tampilkan detail setiap habit
             habits.forEach(habit => {
                 const index = this.habits.indexOf(habit) + 1;
                 const todayMark = habit.isCompletedToday() ? ' (Selesai Hari Ini)' : '';
@@ -463,15 +641,20 @@ class HabitTracker {
         console.log('\n' + '='.repeat(60) + '\n');
     }
     
+    /**
+     * Menampilkan kebiasaan dikelompokkan per kategori
+     */
     displayHabitsByCategory() {
         if (!this.currentProfile) return UI.info('Tidak ada profil aktif.');
         
         UI.header('KEBIASAAN PER KATEGORI');
+        // Ambil unique categories menggunakan Set
         const categories = [...new Set(this.habits.map(h => h.category))];
         
         if (categories.length === 0) {
             console.log('Belum ada kebiasaan.');
         } else {
+            // Tampilkan habits per kategori
             categories.forEach(cat => {
                 console.log(`\n[${cat}]`);
                 this.habits.filter(h => h.category === cat).forEach(habit => {
@@ -482,12 +665,16 @@ class HabitTracker {
         console.log('\n' + '='.repeat(60) + '\n');
     }
     
+    /**
+     * Menampilkan statistik lengkap kebiasaan
+     */
     displayStats() {
         if (!this.currentProfile) return UI.info('Tidak ada profil aktif.');
         
         this.currentProfile.updateStats(this.habits);
         UI.header('STATISTIK KEBIASAAN');
         
+        // Hitung habits aktif dan selesai
         const active = this.habits.filter(h => !h.isCompletedThisWeek()).length;
         const completed = this.habits.filter(h => h.isCompletedThisWeek()).length;
         
@@ -496,12 +683,15 @@ class HabitTracker {
         console.log(`Selesai                 : ${completed}`);
         
         if (this.habits.length > 0) {
+            // Hitung progress rata-rata
             const avgProgress = this.habits.reduce((sum, h) => sum + h.getProgressPercentage(), 0) / this.habits.length;
+            // Hitung total completions minggu ini
             const totalCompletions = this.habits.reduce((sum, h) => sum + h.getThisWeekCompletions(), 0);
             
             console.log(`Progress Rata-rata      : ${avgProgress.toFixed(1)}%`);
             console.log(`Total Selesai Minggu Ini: ${totalCompletions} kali`);
             
+            // Cari habit dengan streak terpanjang
             const streaks = this.habits.map(h => ({ name: h.name, streak: h.getCurrentStreak() }))
                 .sort((a, b) => b.streak - a.streak);
             
@@ -513,6 +703,9 @@ class HabitTracker {
         console.log('='.repeat(60) + '\n');
     }
     
+    /**
+     * Menampilkan riwayat penyelesaian 7 hari terakhir
+     */
     displayHistory() {
         if (!this.currentProfile) return UI.info('Tidak ada profil aktif.');
         
@@ -523,6 +716,7 @@ class HabitTracker {
         } else {
             const today = DateUtils.today();
             
+            // Loop 7 hari terakhir (dari 6 hari lalu sampai hari ini)
             for (let i = 6; i >= 0; i--) {
                 const date = new Date(today);
                 date.setDate(today.getDate() - i);
@@ -533,6 +727,7 @@ class HabitTracker {
                 
                 console.log(`\n${dateStr}:`);
                 
+                // Cari habits yang diselesaikan di tanggal ini
                 const completed = this.habits.filter(h => 
                     h.completions.some(comp => DateUtils.isSameDay(comp, date))
                 );
@@ -548,6 +743,10 @@ class HabitTracker {
     }
     
     // ========== REMINDER SYSTEM ==========
+    
+    /**
+     * Mengaktifkan sistem reminder otomatis
+     */
     startReminder() {
         if (this.reminderTimer) clearInterval(this.reminderTimer);
         this.reminderTimer = setInterval(() => this.showReminder(), CONFIG.reminderInterval);
@@ -555,6 +754,9 @@ class HabitTracker {
         UI.success('Pengingat diaktifkan (setiap 10 detik).');
     }
     
+    /**
+     * Menonaktifkan sistem reminder
+     */
     stopReminder() {
         if (this.reminderTimer) {
             clearInterval(this.reminderTimer);
@@ -564,10 +766,17 @@ class HabitTracker {
         }
     }
     
+    /**
+     * Toggle reminder on/off
+     */
     toggleReminder() {
         this.reminderEnabled ? this.stopReminder() : this.startReminder();
     }
     
+    /**
+     * Pause reminder (saat user sedang input)
+     * Timer di-clear tapi status enabled tetap true
+     */
     pauseReminder() {
         if (this.reminderEnabled && this.reminderTimer) {
             clearInterval(this.reminderTimer);
@@ -575,12 +784,19 @@ class HabitTracker {
         }
     }
     
+    /**
+     * Resume reminder (setelah user selesai input)
+     * Restart timer jika reminder masih enabled
+     */
     resumeReminder() {
         if (this.reminderEnabled && !this.reminderTimer) {
             this.reminderTimer = setInterval(() => this.showReminder(), CONFIG.reminderInterval);
         }
     }
     
+    /**
+     * Reset timer reminder (restart countdown dari awal)
+     */
     resetReminder() {
         if (this.reminderEnabled && this.reminderTimer) {
             clearInterval(this.reminderTimer);
@@ -588,12 +804,19 @@ class HabitTracker {
         }
     }
     
+    /**
+     * Menampilkan notifikasi reminder
+     * Hanya muncul jika ada habits yang belum diselesaikan hari ini
+     */
     showReminder() {
+        // Jangan tampilkan jika tidak ada profil atau habits
         if (!this.currentProfile || this.habits.length === 0) return;
         
+        // Filter habits yang belum diselesaikan hari ini
         const incomplete = this.habits.filter(h => !h.isCompletedToday());
-        if (incomplete.length === 0) return;
+        if (incomplete.length === 0) return; // Jangan tampilkan jika semua sudah selesai
         
+        // Tampilkan notifikasi dengan warna kuning
         console.clear();
         console.log('\n' + CONFIG.colors.yellow + '-'.repeat(60));
         console.log('PENGINGAT KEBIASAAN HARI INI :');
@@ -602,20 +825,29 @@ class HabitTracker {
         });
         console.log('-'.repeat(60) + CONFIG.colors.reset);
         console.log(CONFIG.colors.darkgray + 'Notifikasi: ' + CONFIG.colors.red + 'AKTIF' + CONFIG.colors.reset);
+        console.log(CONFIG.colors.darkgray + 'Notifikasi ini muncul setiap 10 detik.' + CONFIG.colors.reset);
         console.log(CONFIG.colors.darkgray + 'Matikan melalui menu utama.' + CONFIG.colors.reset);
     }
     
     // ========== FILE OPERATIONS ==========
+    
+    /**
+     * Menyimpan semua data ke file JSON
+     * Termasuk profiles, currentProfileId, dan profileHabits mapping
+     */
     saveToFile() {
         const data = FileManager.read() || { profileHabits: {} };
         
+        // Update data profiles dan currentProfileId
         data.profiles = this.profiles;
         data.currentProfileId = this.currentProfile?.id || null;
         
+        // Simpan habits untuk profil saat ini
         if (this.currentProfile) {
             data.profileHabits[this.currentProfile.id] = this.habits;
         }
         
+        // Pastikan semua profil punya entry di profileHabits (meski kosong)
         this.profiles.forEach(p => {
             if (!data.profileHabits[p.id]) data.profileHabits[p.id] = [];
         });
@@ -623,10 +855,15 @@ class HabitTracker {
         FileManager.write(data);
     }
     
+    /**
+     * Load data dari file JSON saat aplikasi start
+     * Reconstruct profiles dan habits dari data tersimpan
+     */
     loadFromFile() {
         const data = FileManager.read();
         if (!data) return;
         
+        // Reconstruct profiles dari data
         if (data.profiles) {
             this.profiles = data.profiles.map(pData => {
                 const profile = new UserProfile(pData.name || 'User', pData.id);
@@ -637,10 +874,12 @@ class HabitTracker {
             });
         }
         
+        // Set currentProfile berdasarkan ID yang tersimpan
         if (data.currentProfileId) {
             this.currentProfile = this.profiles.find(p => p.id === data.currentProfileId);
         }
         
+        // Load habits untuk profil yang aktif
         if (this.currentProfile) {
             this.loadHabitsForProfile(this.currentProfile.id);
         }
@@ -648,6 +887,10 @@ class HabitTracker {
         console.log('[OK] Data berhasil dimuat.');
     }
     
+    /**
+     * Export data habits ke file teks
+     * File disimpan sebagai habits-export.txt di folder aplikasi
+     */
     exportData() {
         if (!this.currentProfile) return UI.info('Tidak ada profil aktif.');
         
@@ -658,6 +901,7 @@ class HabitTracker {
         text += `Total Kebiasaan: ${this.habits.length}\n\n`;
         text += '='.repeat(60) + '\nDAFTAR KEBIASAAN\n' + '='.repeat(60) + '\n\n';
         
+        // Tambahkan detail setiap habit
         this.habits.forEach((h, i) => {
             text += `${i + 1}. ${h.name}\n`;
             text += `   Kategori: ${h.category}\n`;
@@ -667,6 +911,7 @@ class HabitTracker {
             text += `   Total Penyelesaian: ${h.completions.length}x\n\n`;
         });
         
+        // Tulis ke file
         try {
             fs.writeFileSync(exportPath, text, 'utf8');
             UI.success(`Data diekspor ke: ${exportPath}`);
@@ -675,6 +920,9 @@ class HabitTracker {
         }
     }
     
+    /**
+     * Generate 5 contoh kebiasaan untuk testing/demo
+     */
     async generateDemoHabits() {
         if (!this.currentProfile) return UI.info('Tidak ada profil aktif.');
         
@@ -698,8 +946,14 @@ class HabitTracker {
 // ============================================
 // MENU DISPLAYS
 // ============================================
+
+/**
+ * Menampilkan menu utama dengan statistik ringkas
+ * @param {HabitTracker} tracker - Instance tracker
+ */
 function displayMainMenu(tracker) {
     console.clear();
+    // Hitung statistik untuk ditampilkan di header menu
     const active = tracker.habits.filter(h => !h.isCompletedThisWeek()).length;
     const completed = tracker.habits.filter(h => h.isCompletedThisWeek()).length;
     const pending = tracker.habits.filter(h => !h.isCompletedToday()).length;
@@ -734,6 +988,10 @@ function displayMainMenu(tracker) {
     UI.separator();
 }
 
+/**
+ * Menampilkan menu Kelola Profil
+ * @param {HabitTracker} tracker - Instance tracker
+ */
 function displayProfileMenu(tracker) {
     console.clear();
     UI.header('KELOLA PROFIL');
@@ -748,6 +1006,9 @@ function displayProfileMenu(tracker) {
     UI.separator();
 }
 
+/**
+ * Menampilkan menu Kelola Kebiasaan
+ */
 function displayHabitMenu() {
     console.clear();
     UI.header('KELOLA KEBIASAAN');
@@ -774,86 +1035,107 @@ function displayHabitMenu() {
 // ============================================
 // MENU HANDLERS
 // ============================================
+
+/**
+ * Handler untuk menu Kelola Profil
+ * Menangani semua operasi profil (lihat, ganti, buat, hapus)
+ * @param {HabitTracker} tracker - Instance tracker
+ */
+/**
+ * Handler untuk menu Kelola Profil
+ * Menangani semua operasi profil (lihat, ganti, buat, hapus)
+ * @param {HabitTracker} tracker - Instance tracker
+ */
 async function handleProfileMenu(tracker) {
     let running = true;
     
     while (running) {
         displayProfileMenu(tracker);
+        // skipPause=true agar reminder tetap berjalan saat pilih menu
         const choice = await askQuestion('\n> Menu Utama > Kelola Profil\nPilih menu (0-4): ', tracker, true);
         
+        // Clear console kecuali pilihan 0 (kembali)
         if (choice !== '0') console.clear();
         
         switch (choice) {
-            case '1':
+            case '1': // Lihat profil
                 tracker.displayProfile();
                 break;
-            case '2':
+            case '2': // Ganti profil
                 await tracker.selectProfile();
                 break;
-            case '3':
+            case '3': // Buat profil baru
                 await tracker.createNewProfile();
                 break;
-            case '4':
+            case '4': // Hapus profil
                 await tracker.deleteProfile();
                 break;
-            case '0':
+            case '0': // Kembali ke menu utama
                 running = false;
                 break;
-            default:
+            default: // Input tidak valid
                 if (choice.trim()) UI.error('Pilihan tidak valid.');
                 break;
         }
         
+        // Tampilkan prompt "Tekan Enter" kecuali pilihan 0 atau input kosong
         if (choice !== '0' && choice.trim() && running) {
             await askQuestion('\n[Tekan Enter untuk melanjutkan...]', tracker);
         }
     }
 }
 
+/**
+ * Handler untuk menu Kelola Kebiasaan
+ * Menangani semua operasi CRUD kebiasaan dan analisis
+ * @param {HabitTracker} tracker - Instance tracker
+ */
 async function handleHabitMenu(tracker) {
     let running = true;
     
     while (running) {
         displayHabitMenu();
+        // skipPause=true agar reminder tetap berjalan saat pilih menu
         const choice = await askQuestion('\n> Menu Utama > Kelola Kebiasaan\nPilih menu (0-10): ', tracker, true);
         
+        // Clear console kecuali pilihan 0 (kembali)
         if (choice !== '0') console.clear();
         
         switch (choice) {
-            case '1':
+            case '1': // Lihat semua kebiasaan
                 tracker.displayHabits('all');
                 break;
-            case '2':
+            case '2': // Lihat per kategori
                 tracker.displayHabitsByCategory();
                 break;
-            case '3':
+            case '3': // Kebiasaan aktif saja
                 tracker.displayHabits('active');
                 break;
-            case '4':
+            case '4': // Kebiasaan selesai saja
                 tracker.displayHabits('completed');
                 break;
-            case '5':
+            case '5': // Lihat statistik
                 tracker.displayStats();
                 break;
-            case '6':
+            case '6': // Lihat riwayat
                 tracker.displayHistory();
                 break;
-            case '7':
+            case '7': // Tambah kebiasaan baru
                 await handleAddHabit(tracker);
                 break;
-            case '8':
+            case '8': // Tandai kebiasaan selesai
                 await handleCompleteHabit(tracker);
                 break;
-            case '9':
+            case '9': // Edit kebiasaan
                 await handleEditHabit(tracker);
                 break;
-            case '10':
+            case '10':  // Hapus kebiasaan
                 await handleDeleteHabit(tracker);
                 break;
-            case '0':
+            case '0': // Kembali ke menu utama
                 running = false;
                 break;
-            default:
+            default: // Input tidak valid
                 if (choice.trim()) UI.error('Pilihan tidak valid.');
                 break;
         }
@@ -864,15 +1146,22 @@ async function handleHabitMenu(tracker) {
     }
 }
 
+/**
+ * Handler untuk tambah kebiasaan baru
+ * Meminta input nama, target, dan kategori dari user
+ * @param {HabitTracker} tracker - Instance tracker
+ */
 async function handleAddHabit(tracker) {
     if (!tracker.currentProfile) return UI.info('Tidak ada profil aktif.');
     
+    // Minta input detail kebiasaan baru
     UI.header('TAMBAH KEBIASAAN BARU');
     const name = await askQuestion('Nama kebiasaan: ', tracker);
     const frequency = await askQuestion('Target per minggu (1-7): ', tracker);
     const category = await askCategory(tracker);
     
     const freq = parseInt(frequency);
+    // Validasi input
     if (name && freq >= 1 && freq <= 7) {
         tracker.addHabit(name, freq, category);
         UI.success(`Kebiasaan "${name}" (${category}) berhasil ditambahkan!`);
@@ -881,12 +1170,19 @@ async function handleAddHabit(tracker) {
     }
 }
 
+/**
+ * Handler untuk tandai kebiasaan selesai
+ * Menampilkan daftar dan meminta nomor habit yang selesai
+ * @param {HabitTracker} tracker - Instance tracker
+ */
 async function handleCompleteHabit(tracker) {
     if (!tracker.currentProfile) return UI.info('Tidak ada profil aktif.');
     
+    // Tampilkan daftar kebiasaan
     tracker.displayHabits('all');
     if (tracker.habits.length === 0) return;
-    
+
+    // Minta input nomor kebiasaan yang selesai
     const choice = await askQuestion('Nomor kebiasaan yang selesai (0=batal): ', tracker);
     if (choice !== '0') {
         const idx = parseInt(choice);
@@ -898,36 +1194,50 @@ async function handleCompleteHabit(tracker) {
     }
 }
 
+/**
+ * Handler untuk edit kebiasaan
+ * Meminta input field-field yang ingin diubah
+ * @param {HabitTracker} tracker - Instance tracker
+ */
 async function handleEditHabit(tracker) {
     if (!tracker.currentProfile) return UI.info('Tidak ada profil aktif.');
     
+    // Tampilkan daftar kebiasaan
     tracker.displayHabits('all');
     if (tracker.habits.length === 0) return;
     
+    //  Minta input nomor kebiasaan yang akan diedit
     const choice = await askQuestion('Nomor kebiasaan untuk diedit (0=batal): ', tracker);
     if (choice === '0') return;
     
+    //  Validasi nomor kebiasaan
     const idx = parseInt(choice);
     if (idx < 1 || idx > tracker.habits.length) return UI.error('Nomor tidak valid.');
     
+    //  Tampilkan detail kebiasaan yang akan diedit
     const habit = tracker.habits[idx - 1];
     console.log(`\nEdit "${habit.name}"`);
     console.log('(Kosongkan jika tidak ingin mengubah)\n');
     
+    // Input field-field yang bisa diubah
     const newName = await askQuestion(`Nama baru [${habit.name}]: `, tracker);
     const newFreq = await askQuestion(`Target baru [${habit.targetFrequency}]: `, tracker);
     
+    // Ubah kategori jika diinginkan
     console.log(`\nKategori saat ini: ${habit.category}`);
     const changeCat = await askQuestion('Ubah kategori? (y/n): ', tracker);
     
+    // Jika ya, minta input kategori baru
     let finalCat = null;
     if (changeCat.toLowerCase() === 'y') {
         finalCat = await askCategory(tracker);
     }
     
+    // Proses perubahan
     const finalName = newName || null;
     const finalFreq = newFreq ? parseInt(newFreq) : null;
     
+    // Validasi target frequency jika diubah
     if (finalName || finalFreq || finalCat) {
         tracker.editHabit(idx, finalName, finalFreq, finalCat);
     } else {
@@ -935,22 +1245,32 @@ async function handleEditHabit(tracker) {
     }
 }
 
+/**
+ * Handler untuk hapus kebiasaan
+ * Mendukung hapus satu habit atau hapus semua
+ * @param {HabitTracker} tracker - Instance tracker
+ */
 async function handleDeleteHabit(tracker) {
     if (!tracker.currentProfile) return UI.info('Tidak ada profil aktif.');
     if (tracker.habits.length === 0) return UI.info('Belum ada kebiasaan.');
     
+    //  Tampilkan daftar kebiasaan
     tracker.displayHabits('all');
     console.log('\nOpsi Hapus:');
     console.log('1. Hapus kebiasaan tertentu');
     console.log('2. Hapus semua kebiasaan');
     console.log('0. Batal');
-    
+
+    // Minta input opsi hapus
     const option = await askQuestion('\nPilih opsi (0-2): ', tracker);
     
+    // Hapus kebiasaan tertentu
     if (option === '1') {
+        // Hapus kebiasaan tertentu
         const choice = await askQuestion('\nNomor kebiasaan untuk dihapus (0=batal): ', tracker);
         if (choice === '0') return UI.info('Dibatalkan.');
         
+        //  Validasi nomor kebiasaan
         const idx = parseInt(choice);
         if (idx >= 1 && idx <= tracker.habits.length) {
             const habit = tracker.habits[idx - 1];
@@ -964,9 +1284,11 @@ async function handleDeleteHabit(tracker) {
             UI.error('Nomor tidak valid.');
         }
     } else if (option === '2') {
+        // Hapus semua kebiasaan dengan konfirmasi ketat
         console.log(`\n[!] PERINGATAN: Anda akan menghapus SEMUA ${tracker.habits.length} kebiasaan!`);
         const confirm = await askQuestion('Ketik "HAPUS SEMUA" untuk konfirmasi: ', tracker);
         
+        //  Proses hapus semua jika konfirmasi sesuai
         if (confirm === 'HAPUS SEMUA') {
             const count = tracker.habits.length;
             tracker.habits = [];
@@ -982,6 +1304,7 @@ async function handleDeleteHabit(tracker) {
     }
 }
 
+// Demonstrasi penggunaan while dan for loop
 function displayLoopDemo(habits, type) {
     const title = type === 'while' ? 'WHILE LOOP' : 'FOR LOOP';
     UI.header(`DEMONSTRASI ${title}`);
@@ -1002,6 +1325,7 @@ function displayLoopDemo(habits, type) {
     console.log('='.repeat(60) + '\n');
 }
 
+// Handler untuk menu utama
 async function handleMainMenu(tracker) {
     let running = true;
     
@@ -1012,40 +1336,40 @@ async function handleMainMenu(tracker) {
         console.clear();
         
         switch (choice) {
-            case '1':
+            case '1': // Kelola Profil
                 await handleProfileMenu(tracker);
                 break;
-            case '2':
+            case '2': // Kelola Kebiasaan
                 await handleHabitMenu(tracker);
                 break;
-            case '3':
+            case '3': // Lihat semua kebiasaan
                 if (!tracker.currentProfile) {
                     UI.info('Tidak ada profil aktif.');
                 } else {
                     tracker.displayHabits('all');
                 }
                 break;
-            case '4':
+            case '4': // Tambah kebiasaan baru
                 await handleAddHabit(tracker);
                 break;
-            case '5':
+            case '5': // Tandai kebiasaan selesai
                 await handleCompleteHabit(tracker);
                 break;
-            case '6':
+            case '6': // Demo loop
                 displayLoopDemo(tracker.habits, 'while');
                 await askQuestion('[Tekan Enter untuk melanjutkan ke FOR loop...]', tracker);
                 displayLoopDemo(tracker.habits, 'for');
                 break;
-            case '7':
+            case '7': // Ekspor data
                 tracker.exportData();
                 break;
-            case '8':
+            case '8': // Generate demo kebiasaan
                 await tracker.generateDemoHabits();
                 break;
-            case '9':
+            case '9': // Toggle reminder
                 tracker.toggleReminder();
                 break;
-            case '0':
+            case '0': // Keluar
                 console.clear();
                 console.log('\n' + '='.repeat(60));
                 console.log('Terima kasih telah menggunakan HABIT TRACKER');
@@ -1058,6 +1382,7 @@ async function handleMainMenu(tracker) {
                 break;
         }
         
+        // Tampilkan prompt "Tekan Enter" kecuali pilihan 0 atau input kosong
         if (running && choice !== '0' && choice !== '9' && choice.trim()) {
             await askQuestion('\n[Tekan Enter untuk melanjutkan...]', tracker);
         }
@@ -1069,6 +1394,11 @@ async function handleMainMenu(tracker) {
 // ============================================
 // MAIN FUNCTION
 // ============================================
+
+/**
+ * Fungsi utama aplikasi
+ * Menangani first-time setup, login, dan main menu loop
+ */
 async function main() {
     console.clear();
     console.log('\n' + CONFIG.colors.cyan + '='.repeat(60));
@@ -1076,13 +1406,17 @@ async function main() {
     console.log('Bangun kebiasaan baik, capai tujuan Anda!');
     console.log('='.repeat(60) + CONFIG.colors.reset);
     
+    // Inisialisasi tracker (akan load data dari file jika ada)
     const tracker = new HabitTracker();
     
+    // FIRST TIME USER - Belum ada profil sama sekali
     if (tracker.profiles.length === 0) {
         console.log('\nSepertinya ini adalah kunjungan pertama Anda!');
         const userName = await askQuestion('Bolehkah kami mengetahui nama Anda? ', tracker);
         
+        // Jika user memasukkan nama, buat profil baru
         if (userName) {
+            // Buat profil baru untuk first time user
             const newProfile = new UserProfile(userName);
             tracker.profiles.push(newProfile);
             tracker.currentProfile = newProfile;
@@ -1090,9 +1424,11 @@ async function main() {
             
             UI.success(`Profil "${userName}" telah dibuat!`);
             
+            // Tawarkan pembuatan contoh kebiasaan
             const wantDemo = await askQuestion('\nIngin kami buatkan contoh kebiasaan? (y/n): ', tracker);
             if (wantDemo.toLowerCase() === 'y') {
                 console.log('\n[...] Membuat contoh kebiasaan...');
+                // Generate 5 contoh kebiasaan
                 tracker.addHabit('Minum Air 8 Gelas', 7, 'Kesehatan');
                 tracker.addHabit('Olahraga 30 Menit', 5, 'Kesehatan');
                 tracker.addHabit('Membaca Buku 30 Menit', 5, 'Produktivitas');
@@ -1102,25 +1438,30 @@ async function main() {
             }
         }
     } else {
+        // RETURNING USER - Ada profil tersimpan, tampilkan login screen
         console.log('\n' + CONFIG.colors.yellow + 'Data profil ditemukan!' + CONFIG.colors.reset);
         UI.header('PILIH PROFIL');
         
+        // Tampilkan daftar profil dengan info kebiasaan
         tracker.profiles.forEach((profile, i) => {
             const count = tracker.getProfileHabitsCount(profile.id);
             console.log(`${i + 1}. ${CONFIG.colors.bright}${profile.name}${CONFIG.colors.reset} (${count} kebiasaan)`);
             console.log(`   Bergabung: ${new Date(profile.joinDate).toLocaleDateString('id-ID')}`);
         });
         
+        // Opsi buat profil baru
         UI.separator();
         console.log(`${tracker.profiles.length + 1}. ${CONFIG.colors.green}Buat Profil Baru${CONFIG.colors.reset}`);
         UI.separator();
         
+        // Loop sampai user pilih profil yang valid
         let validChoice = false;
         while (!validChoice) {
             const choice = await askQuestion(`\nPilih profil (1-${tracker.profiles.length + 1}): `, tracker);
             const num = parseInt(choice);
             
             if (num >= 1 && num <= tracker.profiles.length) {
+                // Login ke profil yang dipilih
                 const selected = tracker.profiles[num - 1];
                 tracker.currentProfile = selected;
                 tracker.loadHabitsForProfile(selected.id);
@@ -1128,6 +1469,7 @@ async function main() {
                 console.log(`\n${CONFIG.colors.green}[OK] Selamat datang kembali, ${selected.name}!${CONFIG.colors.reset}`);
                 console.log(`[INFO] ${tracker.habits.length} kebiasaan dimuat.`);
                 
+                // Tampilkan notifikasi pending habits hari ini
                 const pending = tracker.habits.filter(h => !h.isCompletedToday()).length;
                 if (pending > 0) {
                     console.log(`Anda memiliki ${CONFIG.colors.yellow}${pending} kebiasaan${CONFIG.colors.reset} yang belum diselesaikan hari ini.`);
@@ -1137,6 +1479,7 @@ async function main() {
                 
                 validChoice = true;
             } else if (num === tracker.profiles.length + 1) {
+                // Opsi buat profil baru dari login screen
                 UI.header('BUAT PROFIL BARU');
                 const newName = await askQuestion('Nama untuk profil baru: ', tracker);
                 
@@ -1149,6 +1492,7 @@ async function main() {
                     
                     UI.success(`Profil "${newProfile.name}" berhasil dibuat!`);
                     
+                    // Tawarkan contoh kebiasaan untuk profil baru
                     const wantDemo = await askQuestion('\nIngin kami buatkan contoh kebiasaan? (y/n): ', tracker);
                     if (wantDemo.toLowerCase() === 'y') {
                         console.log('\n[...] Membuat contoh kebiasaan...');
@@ -1165,11 +1509,13 @@ async function main() {
                     UI.error('Nama tidak boleh kosong.');
                 }
             } else {
+                // Input tidak valid
                 UI.error(`Pilihan tidak valid. Masukkan angka 1-${tracker.profiles.length + 1}.`);
             }
         }
     }
     
+    // Mulai reminder system dan jalankan main menu loop
     tracker.startReminder();
     await handleMainMenu(tracker);
 }
@@ -1177,8 +1523,13 @@ async function main() {
 // ============================================
 // RUN APPLICATION
 // ============================================
+
+/**
+ * Entry point - Jalankan aplikasi
+ * Catch error global dan cleanup resources jika terjadi error
+ */
 main().catch(error => {
     console.error('\n[X] Terjadi kesalahan:', error.message);
-    rl.close();
-    process.exit(1);
+    rl.close();  // Pastikan readline interface ditutup
+    process.exit(1);  // Exit dengan error code
 });

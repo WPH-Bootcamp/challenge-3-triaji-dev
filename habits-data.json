@@ -4,8 +4,6 @@
       "id": 1762674560919.5867,
       "name": "Andi",
       "joinDate": "2025-11-09T07:49:20.919Z",
-      "totalHabits": 0,
-      "completedThisWeek": 0,
       "currentStreak": 0,
       "longestStreak": 0
     },
@@ -13,8 +11,6 @@
       "id": 1762674893190.6372,
       "name": "Budi",
       "joinDate": "2025-11-09T07:54:53.190Z",
-      "totalHabits": 0,
-      "completedThisWeek": 0,
       "currentStreak": 0,
       "longestStreak": 0
     },
@@ -22,13 +18,18 @@
       "id": 1762675490236.1533,
       "name": "Samsul",
       "joinDate": "2025-11-09T08:04:50.236Z",
-      "totalHabits": 0,
-      "completedThisWeek": 0,
+      "currentStreak": 0,
+      "longestStreak": 0
+    },
+    {
+      "id": 1762680192941.5928,
+      "name": "Joko",
+      "joinDate": "2025-11-09T09:23:12.941Z",
       "currentStreak": 0,
       "longestStreak": 0
     }
   ],
-  "currentProfileId": 1762675490236.1533,
+  "currentProfileId": 1762680192941.5928,
   "profileHabits": {
     "1762674560919.5867": [
       {
@@ -157,6 +158,60 @@
         "createdAt": "2025-11-09T08:04:54.084Z",
         "category": "Produktivitas",
         "priority": "normal"
+      }
+    ],
+    "1762680192941.5928": [
+      {
+        "id": 1762680194396.4805,
+        "name": "Minum Air 8 Gelas",
+        "targetFrequency": 7,
+        "completions": [
+          "2025-11-08T17:00:00.000Z"
+        ],
+        "createdAt": "2025-11-09T09:23:14.396Z",
+        "category": "Kesehatan"
+      },
+      {
+        "id": 1762680194400.1113,
+        "name": "Olahraga 30 Menit",
+        "targetFrequency": 5,
+        "completions": [],
+        "createdAt": "2025-11-09T09:23:14.400Z",
+        "category": "Kesehatan"
+      },
+      {
+        "id": 1762680194412.7446,
+        "name": "Membaca Buku 30 Menit",
+        "targetFrequency": 5,
+        "completions": [
+          "2025-11-08T17:00:00.000Z"
+        ],
+        "createdAt": "2025-11-09T09:23:14.412Z",
+        "category": "Produktivitas"
+      },
+      {
+        "id": 1762680194423.6187,
+        "name": "Meditasi 10 Menit",
+        "targetFrequency": 7,
+        "completions": [],
+        "createdAt": "2025-11-09T09:23:14.423Z",
+        "category": "Kesehatan"
+      },
+      {
+        "id": 1762680194437.0347,
+        "name": "Belajar Coding",
+        "targetFrequency": 6,
+        "completions": [],
+        "createdAt": "2025-11-09T09:23:14.437Z",
+        "category": "Produktivitas"
+      },
+      {
+        "id": 1762680226493.1975,
+        "name": "Menanam Bunga",
+        "targetFrequency": 7,
+        "completions": [],
+        "createdAt": "2025-11-09T09:23:46.493Z",
+        "category": "Hobi"
       }
     ]
   }
