@@ -824,9 +824,11 @@ class HabitTracker {
             console.log(`${i + 1}. ${h.name} (${h.getThisWeekCompletions()}/${h.targetFrequency})`);
         });
         console.log('-'.repeat(60) + CONFIG.colors.reset);
-        console.log(CONFIG.colors.darkgray + 'Notifikasi: ' + CONFIG.colors.red + 'AKTIF' + CONFIG.colors.reset);
-        console.log(CONFIG.colors.darkgray + 'Notifikasi ini muncul setiap 10 detik.' + CONFIG.colors.reset);
-        console.log(CONFIG.colors.darkgray + 'Matikan melalui menu utama.' + CONFIG.colors.reset);
+        console.log(CONFIG.colors.darkgray + 'Notifikasi: ' + CONFIG.colors.red + 'AKTIF. ' + CONFIG.colors.darkgray + '- (Matikan melalui menu utama)' + CONFIG.colors.reset);
+        console.log(CONFIG.colors.darkgray + 'Notifikasi ini muncul setelah 10 detik' + CONFIG.colors.reset);
+        console.log(CONFIG.colors.darkgray + 'jika tidak ada interaksi User di halaman Menu.' + CONFIG.colors.reset);
+        console.log();
+        console.log(CONFIG.colors.darkgray + 'Tekan Enter untuk melanjutkan...' + CONFIG.colors.reset);
     }
     
     // ========== FILE OPERATIONS ==========
