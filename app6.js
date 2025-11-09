@@ -155,7 +155,7 @@ class Habit {
         const percentage = this.getProgressPercentage();
         const filled = Math.floor(percentage / 10);
         const empty = 10 - filled;
-        const bar = '#'.repeat(filled) + '-'.repeat(empty);
+        const bar = '▓'.repeat(filled) + '░'.repeat(empty);
         return `[${bar}] ${percentage.toFixed(0)}%`;
     }
     
@@ -639,7 +639,7 @@ class HabitTracker {
         
         if (incompleteToday.length > 0) {
             console.log('\n' + colors.yellow +  '-'.repeat(60));
-            console.log('PENGINGAT KEBIASAAN');
+            console.log('PENGINGAT KEBIASAAN HARI INI :');
             
             incompleteToday.forEach((habit, index) => {
                 const completed = habit.getThisWeekCompletions();
@@ -801,7 +801,39 @@ function askQuestion(question, tracker = null) {
     });
 }
 
+async function askCategory(tracker) {
+    console.log('\nPilih Kategori:');
+    console.log('K - Kesehatan');
+    console.log('P - Produktivitas');
+    console.log('H - Hobi');
+    console.log('U - Umum');
+    console.log('L - Lainnya (Custom)');
+    
+    const choice = await askQuestion('Pilihan (K/P/H/U/L): ', tracker);
+    const categoryMap = {
+        'K': 'Kesehatan',
+        'k': 'Kesehatan',
+        'P': 'Produktivitas',
+        'p': 'Produktivitas',
+        'H': 'Hobi',
+        'h': 'Hobi',
+        'U': 'Umum',
+        'u': 'Umum'
+    };
+    
+    if (choice.toUpperCase() === 'L') {
+        const customCategory = await askQuestion('Masukkan nama kategori: ', tracker);
+        return customCategory.trim() || 'Umum';
+    } else if (categoryMap[choice]) {
+        return categoryMap[choice];
+    } else {
+        console.log('[!] Pilihan tidak valid, menggunakan kategori "Umum"');
+        return 'Umum';
+    }
+}
+
 function displayMainMenu(tracker) {
+    console.clear();
     const activeHabits = tracker.habits.filter(h => !h.isCompletedThisWeek()).length;
     const completedHabits = tracker.habits.filter(h => h.isCompletedThisWeek()).length;
     const pendingToday = tracker.habits.filter(h => !h.isCompletedToday()).length;
@@ -820,14 +852,14 @@ function displayMainMenu(tracker) {
     }
     console.log(`Streak: ${streak} hari` + colors.reset);
     console.log('='.repeat(60));
-    console.log(colors.cyan + 'Kelola :' + colors.reset);
+    console.log(colors.cyan + 'Kelola:' + colors.reset);
     console.log('1. Kelola Profil');
     console.log('2. Kelola Kebiasaan');
     console.log('-'.repeat(60));
-    console.log(colors.cyan + 'Shortcut :' + colors.reset);
-    console.log('3. Tambah Kebiasaan Baru');
-    console.log('4. Tandai Kebiasaan Selesai');
-    console.log('5. Hapus Kebiasaan');
+    console.log(colors.cyan + 'Shortcut:' + colors.reset);
+    console.log('3. Lihat Semua Kebiasaan');
+    console.log('4. Tambah Kebiasaan Baru');
+    console.log('5. Tandai Kebiasaan Selesai');
     console.log('-'.repeat(60));
     console.log(colors.cyan + 'Utilitas:' + colors.reset);
     console.log('6. Demo Loop');
@@ -840,6 +872,7 @@ function displayMainMenu(tracker) {
 }
 
 function displayProfileMenu(tracker) {
+    console.clear();
     console.log('\n' + '='.repeat(60));
     console.log(colors.cyan + 'KELOLA PROFIL');
     console.log('Profil Aktif: ' + colors.magenta + (tracker.currentProfile ? tracker.currentProfile.name : 'Tidak ada') + colors.reset);
@@ -854,21 +887,25 @@ function displayProfileMenu(tracker) {
 }
 
 function displayHabitMenu() {
+    console.clear();
     console.log('\n' + '='.repeat(60));
     console.log(colors.cyan + 'KELOLA KEBIASAAN' + colors.reset);
     console.log('='.repeat(60));
-    console.log(colors.cyan + 'TAMPILAN' + colors.reset);
+    console.log(colors.cyan + 'Tampilan:' + colors.reset);
     console.log('1. Lihat Semua Kebiasaan');
     console.log('2. Lihat per Kategori');
     console.log('3. Kebiasaan Aktif Saja');
     console.log('4. Kebiasaan Selesai Saja');
     console.log('-'.repeat(60));
-    console.log(colors.cyan + 'ANALISIS' + colors.reset);
+    console.log(colors.cyan + 'Analisis:' + colors.reset);
     console.log('5. Lihat Statistik');
     console.log('6. Lihat Riwayat (7 hari)');
     console.log('-'.repeat(60));
-    console.log(colors.cyan + 'AKSI' + colors.reset);
-    console.log('7. Edit Kebiasaan');
+    console.log(colors.cyan + 'Aksi:' + colors.reset);
+    console.log('7. Tambah Kebiasaan Baru');
+    console.log('8. Tandai Kebiasaan Selesai');
+    console.log('9. Edit Kebiasaan');
+    console.log('10. Hapus Kebiasaan');
     console.log('-'.repeat(60));
     console.log('0. Kembali ke Menu Utama');
     console.log('-'.repeat(60));
@@ -928,7 +965,7 @@ async function handleHabitMenu(tracker) {
     
     while (running) {
         displayHabitMenu();
-        const choice = await askQuestion('\n> Menu Utama > Kelola Kebiasaan\nPilih menu (0-7): ', tracker);
+        const choice = await askQuestion('\n> Menu Utama > Kelola Kebiasaan\nPilih menu (0-10): ', tracker);
         
         // Jangan clear console jika pilihan adalah '0' (kembali)
         if (choice !== '0') {
@@ -961,6 +998,50 @@ async function handleHabitMenu(tracker) {
                 break;
                 
             case '7':
+                if (!tracker.currentProfile) {
+                    console.log('\n[!] Tidak ada profil yang aktif.');
+                    break;
+                }
+                console.log('\n' + '='.repeat(60));
+                console.log(colors.cyan + 'TAMBAH KEBIASAAN BARU' + colors.reset);
+                console.log('='.repeat(60));
+                const name = await askQuestion('Nama kebiasaan: ', tracker);
+                const frequency = await askQuestion('Target per minggu (1-7): ', tracker);
+                const category = await askCategory(tracker);
+                
+                const freq = parseInt(frequency);
+                if (name && freq >= 1 && freq <= 7) {
+                    tracker.addHabit(name, freq, category);
+                    console.log(`\n[OK] Kebiasaan "${name}" (${category}) telah berhasil ditambahkan!`);
+                } else {
+                    console.log('\n[X] Input tidak valid.');
+                }
+                break;
+                
+            case '8':
+                if (!tracker.currentProfile) {
+                    console.log('\n[!] Tidak ada profil yang aktif.');
+                    break;
+                }
+                tracker.displayHabits('all');
+                if (tracker.habits.length > 0) {
+                    const completeIndex = await askQuestion('Nomor kebiasaan yang selesai (atau 0 untuk batal): ', tracker);
+                    if (completeIndex !== '0') {
+                        const idx = parseInt(completeIndex);
+                        if (idx >= 1 && idx <= tracker.habits.length) {
+                            tracker.completeHabit(idx);
+                        } else {
+                            console.log('\n[X] Nomor tidak valid.');
+                        }
+                    }
+                }
+                break;
+                
+            case '9':
+                if (!tracker.currentProfile) {
+                    console.log('\n[!] Tidak ada profil yang aktif.');
+                    break;
+                }
                 tracker.displayHabits('all');
                 if (tracker.habits.length > 0) {
                     const editIndex = await askQuestion('Nomor kebiasaan yang akan diedit (atau 0 untuk batal): ', tracker);
@@ -973,11 +1054,17 @@ async function handleHabitMenu(tracker) {
                             
                             const newName = await askQuestion(`Nama baru [${habit.name}]: `, tracker);
                             const newFreq = await askQuestion(`Target baru [${habit.targetFrequency}]: `, tracker);
-                            const newCat = await askQuestion(`Kategori baru [${habit.category}]: `, tracker);
+                            
+                            console.log(`\nKategori saat ini: ${habit.category}`);
+                            const changeCat = await askQuestion('Ubah kategori? (y/n): ', tracker);
+                            
+                            let finalCat = null;
+                            if (changeCat.toLowerCase() === 'y') {
+                                finalCat = await askCategory(tracker);
+                            }
                             
                             const finalName = newName.trim() || null;
                             const finalFreq = newFreq ? parseInt(newFreq) : null;
-                            const finalCat = newCat.trim() || null;
                             
                             if (finalName || finalFreq || finalCat) {
                                 tracker.editHabit(idx, finalName, finalFreq, finalCat);
@@ -988,6 +1075,62 @@ async function handleHabitMenu(tracker) {
                             console.log('\n[X] Nomor tidak valid.');
                         }
                     }
+                }
+                break;
+                
+            case '10':
+                if (!tracker.currentProfile) {
+                    console.log('\n[!] Tidak ada profil yang aktif.');
+                    break;
+                }
+                
+                if (tracker.habits.length === 0) {
+                    console.log('\n[!] Belum ada kebiasaan yang terdaftar.');
+                    break;
+                }
+                
+                tracker.displayHabits('all');
+                console.log('\nOpsi Hapus:');
+                console.log('1. Hapus kebiasaan tertentu');
+                console.log('2. Hapus semua kebiasaan');
+                console.log('0. Batal');
+                
+                const deleteOption = await askQuestion('\nPilih opsi (0-2): ', tracker);
+                
+                if (deleteOption === '1') {
+                    const deleteIndex = await askQuestion('\nNomor kebiasaan yang akan dihapus (atau 0 untuk batal): ', tracker);
+                    if (deleteIndex !== '0') {
+                        const delIdx = parseInt(deleteIndex);
+                        if (delIdx >= 1 && delIdx <= tracker.habits.length) {
+                            const habitToDelete = tracker.habits[delIdx - 1];
+                            const confirm = await askQuestion(`[!] Yakin ingin menghapus "${habitToDelete.name}"? (y/n): `, tracker);
+                            if (confirm.toLowerCase() === 'y') {
+                                tracker.deleteHabit(delIdx);
+                            } else {
+                                console.log('\n[X] Dibatalkan.');
+                            }
+                        } else {
+                            console.log('\n[X] Nomor tidak valid.');
+                        }
+                    } else {
+                        console.log('\n[X] Dibatalkan.');
+                    }
+                } else if (deleteOption === '2') {
+                    console.log(`\n[!] PERINGATAN: Anda akan menghapus SEMUA ${tracker.habits.length} kebiasaan!`);
+                    const confirmAll = await askQuestion('Ketik "HAPUS SEMUA" untuk konfirmasi: ', tracker);
+                    
+                    if (confirmAll === 'HAPUS SEMUA') {
+                        const habitCount = tracker.habits.length;
+                        tracker.habits = [];
+                        tracker.saveToFile();
+                        console.log(`\n[OK] Berhasil menghapus ${habitCount} kebiasaan.`);
+                    } else {
+                        console.log('\n[X] Dibatalkan. Konfirmasi tidak sesuai.');
+                    }
+                } else if (deleteOption === '0') {
+                    console.log('\n[X] Dibatalkan.');
+                } else {
+                    console.log('\n[X] Pilihan tidak valid.');
                 }
                 break;
                 
@@ -1070,23 +1213,31 @@ async function handleMainMenu(tracker) {
                     console.log('\n[!] Tidak ada profil yang aktif. Silakan pilih atau buat profil terlebih dahulu.');
                     break;
                 }
+                tracker.displayHabits('all');
+                break;
+                
+            case '4':
+                if (!tracker.currentProfile) {
+                    console.log('\n[!] Tidak ada profil yang aktif. Silakan pilih atau buat profil terlebih dahulu.');
+                    break;
+                }
                 console.log('\n' + '='.repeat(60));
-                console.log('TAMBAH KEBIASAAN BARU');
+                console.log(colors.cyan + 'TAMBAH KEBIASAAN BARU' + colors.reset);
                 console.log('='.repeat(60));
                 const name = await askQuestion('Nama kebiasaan: ', tracker);
                 const frequency = await askQuestion('Target per minggu (1-7): ', tracker);
-                const category = await askQuestion('Kategori (Kesehatan/Produktivitas/Hobi/Umum): ', tracker);
+                const category = await askCategory(tracker);
                 
                 const freq = parseInt(frequency);
                 if (name && freq >= 1 && freq <= 7) {
-                    tracker.addHabit(name, freq, category || 'Umum');
-                    console.log(`\n[OK] Kebiasaan "${name}" telah berhasil ditambahkan!`);
+                    tracker.addHabit(name, freq, category);
+                    console.log(`\n[OK] Kebiasaan "${name}" (${category}) telah berhasil ditambahkan!`);
                 } else {
                     console.log('\n[X] Input tidak valid.');
                 }
                 break;
                 
-            case '4':
+            case '5':
                 if (!tracker.currentProfile) {
                     console.log('\n[!] Tidak ada profil yang aktif.');
                     break;
@@ -1098,30 +1249,6 @@ async function handleMainMenu(tracker) {
                         const idx = parseInt(completeIndex);
                         if (idx >= 1 && idx <= tracker.habits.length) {
                             tracker.completeHabit(idx);
-                        } else {
-                            console.log('\n[X] Nomor tidak valid.');
-                        }
-                    }
-                }
-                break;
-                
-            case '5':
-                if (!tracker.currentProfile) {
-                    console.log('\n[!] Tidak ada profil yang aktif.');
-                    break;
-                }
-                tracker.displayHabits('all');
-                if (tracker.habits.length > 0) {
-                    const deleteIndex = await askQuestion('Nomor kebiasaan yang akan dihapus (atau 0 untuk batal): ', tracker);
-                    if (deleteIndex !== '0') {
-                        const delIdx = parseInt(deleteIndex);
-                        if (delIdx >= 1 && delIdx <= tracker.habits.length) {
-                            const confirm = await askQuestion('[!] Apakah Anda yakin ingin menghapus kebiasaan ini? (y/n): ', tracker);
-                            if (confirm.toLowerCase() === 'y') {
-                                tracker.deleteHabit(delIdx);
-                            } else {
-                                console.log('\n[X] Dibatalkan.');
-                            }
                         } else {
                             console.log('\n[X] Nomor tidak valid.');
                         }
@@ -1167,8 +1294,8 @@ async function handleMainMenu(tracker) {
                 break;
         }
         
-        // Hanya tampilkan prompt jika masih running, bukan pilihan '0', '8' (toggle reminder), atau input kosong
-        if (running && choice !== '0' && choice !== '8' && choice.trim() !== '') {
+        // Hanya tampilkan prompt jika masih running, bukan pilihan '0', '9' (toggle reminder), atau input kosong
+        if (running && choice !== '0' && choice !== '9' && choice.trim() !== '') {
             await askQuestion('\n[Tekan Enter untuk melanjutkan...]', tracker);
         }
     }
