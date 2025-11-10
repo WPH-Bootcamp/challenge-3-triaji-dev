@@ -9,16 +9,17 @@
 // Import module Node.js yang diperlukan
 const readline = require('readline'); // Untuk input/output terminal
 const fs = require('fs');             // Untuk operasi file system
-const path = require('path');          // Untuk manipulasi path file
+const path = require('path');         // Untuk manipulasi path file
 
 // ============================================
 // CONSTANTS & CONFIGURATION
 // ============================================
+
 // Konfigurasi global aplikasi
 const CONFIG = {
-    dataFile: path.join(__dirname, 'habits-data.json'), // Path file penyimpanan data
-    reminderInterval: 10000,  // Interval reminder: 10 detik (10000ms)
-    daysInWeek: 7,            // Jumlah hari dalam seminggu
+    DATA_FILE: path.join(__dirname, 'habits-data.json'), // Path file penyimpanan data
+    REMINDER_INTERVAL: 10000,  // Interval reminder: 10 detik (10000ms)
+    DAYS_IN_WEEK: 7,            // Jumlah hari dalam seminggu
     colors: {                 // ANSI color codes untuk styling terminal
         reset: '\x1b[0m',     // Reset warna ke default
         bright: '\x1b[1m',    // Text bold/terang
@@ -43,19 +44,14 @@ const rl = readline.createInterface({
 
 // Object UI untuk fungsi-fungsi tampilan konsol
 const UI = {
-    // Menampilkan header dengan garis pembatas
     header: (title) => {
         console.log('\n' + '='.repeat(60));
         console.log(CONFIG.colors.cyan + title + CONFIG.colors.reset);
         console.log('='.repeat(60));
     },
-    // Menampilkan garis pemisah
     separator: () => console.log('-'.repeat(60)),
-    // Menampilkan pesan sukses dengan prefix [OK]
     success: (msg) => console.log(`\n[OK] ${msg}`),
-    // Menampilkan pesan error dengan prefix [X]
     error: (msg) => console.log(`\n[X] ${msg}`),
-    // Menampilkan pesan info dengan prefix [!]
     info: (msg) => console.log(`\n[!] ${msg}`)
 };
 
@@ -94,8 +90,8 @@ const FileManager = {
     // Membaca data dari file JSON
     read: () => {
         try {
-            if (!fs.existsSync(CONFIG.dataFile)) return null;
-            return JSON.parse(fs.readFileSync(CONFIG.dataFile, 'utf8'));
+            if (!fs.existsSync(CONFIG.DATA_FILE)) return null;
+            return JSON.parse(fs.readFileSync(CONFIG.DATA_FILE, 'utf8'));
         } catch (error) {
             console.error('[X] Error reading file:', error.message);
             return null;
@@ -104,7 +100,7 @@ const FileManager = {
     // Menulis data ke file JSON
     write: (data) => {
         try {
-            fs.writeFileSync(CONFIG.dataFile, JSON.stringify(data, null, 2), 'utf8');
+            fs.writeFileSync(CONFIG.DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
             return true;
         } catch (error) {
             console.error('[X] Error writing file:', error.message);
@@ -164,10 +160,9 @@ async function askCategory(tracker) {
 // ============================================
 // USER PROFILE CLASS
 // ============================================
-/**
- * Class untuk merepresentasikan profil pengguna
- * Setiap user memiliki profil dengan stats dan riwayat tersendiri
- */
+
+// Class untuk merepresentasikan profil pengguna
+// Setiap user memiliki profil dengan stats dan riwayat tersendiri
 class UserProfile {
     constructor(name, id = null) {
         this.id = id || Date.now() + Math.random();  // ID unik untuk setiap profil
@@ -210,10 +205,9 @@ class UserProfile {
 // ============================================
 // HABIT CLASS
 // ============================================
-/**
- * Class untuk merepresentasikan satu kebiasaan
- * Menyimpan data kebiasaan, completion history, dan progress tracking
- */
+
+// Class untuk merepresentasikan satu kebiasaan
+// Menyimpan data kebiasaan, completion history, dan progress tracking
 class Habit {
     constructor(name, targetFrequency, category = 'Umum') {
         this.id = Date.now() + Math.random();         // ID unik untuk setiap habit
@@ -329,10 +323,9 @@ class Habit {
 // ============================================
 // HABIT TRACKER CLASS
 // ============================================
-/**
- * Class utama untuk mengelola seluruh habit tracking system
- * Menangani multi-profil, CRUD habits, reminder, dan file persistence
- */
+
+// Class utama untuk mengelola seluruh habit tracking system
+// Menangani multi-profil, CRUD habits, reminder, dan file persistence
 class HabitTracker {
     constructor() {
         this.profiles = [];              // Array semua profil user
@@ -520,7 +513,7 @@ class HabitTracker {
         // Load dan reconstruct habits dari data JSON
         if (data?.profileHabits?.[profileId]) {
             data.profileHabits[profileId].forEach(hData => {
-                const habit = new Habit(hData.name || 'Kebiasaan', hData.targetFrequency || 7, hData.category || 'Umum');
+                const habit = new Habit(hData.name || 'Kebiasaan', hData.targetFrequency || CONFIG.DAYS_IN_WEEK, hData.category || 'Umum');
                 habit.id = hData.id;
                 habit.completions = hData.completions || [];
                 habit.createdAt = hData.createdAt;
@@ -717,7 +710,7 @@ class HabitTracker {
             const today = DateUtils.today();
             
             // Loop 7 hari terakhir (dari 6 hari lalu sampai hari ini)
-            for (let i = 6; i >= 0; i--) {
+            for (let i = CONFIG.DAYS_IN_WEEK - 1; i >= 0; i--) {
                 const date = new Date(today);
                 date.setDate(today.getDate() - i);
                 
@@ -749,7 +742,7 @@ class HabitTracker {
      */
     startReminder() {
         if (this.reminderTimer) clearInterval(this.reminderTimer);
-        this.reminderTimer = setInterval(() => this.showReminder(), CONFIG.reminderInterval);
+        this.reminderTimer = setInterval(() => this.showReminder(), CONFIG.REMINDER_INTERVAL);
         this.reminderEnabled = true;
         UI.success('Pengingat diaktifkan (setiap 10 detik).');
     }
@@ -790,7 +783,7 @@ class HabitTracker {
      */
     resumeReminder() {
         if (this.reminderEnabled && !this.reminderTimer) {
-            this.reminderTimer = setInterval(() => this.showReminder(), CONFIG.reminderInterval);
+            this.reminderTimer = setInterval(() => this.showReminder(), CONFIG.REMINDER_INTERVAL);
         }
     }
     
@@ -800,7 +793,7 @@ class HabitTracker {
     resetReminder() {
         if (this.reminderEnabled && this.reminderTimer) {
             clearInterval(this.reminderTimer);
-            this.reminderTimer = setInterval(() => this.showReminder(), CONFIG.reminderInterval);
+            this.reminderTimer = setInterval(() => this.showReminder(), CONFIG.REMINDER_INTERVAL);
         }
     }
     
@@ -949,10 +942,7 @@ class HabitTracker {
 // MENU DISPLAYS
 // ============================================
 
-/**
- * Menampilkan menu utama dengan statistik ringkas
- * @param {HabitTracker} tracker - Instance tracker
- */
+// Menampilkan menu utama
 function displayMainMenu(tracker) {
     console.clear();
     // Hitung statistik untuk ditampilkan di header menu
@@ -990,10 +980,7 @@ function displayMainMenu(tracker) {
     UI.separator();
 }
 
-/**
- * Menampilkan menu Kelola Profil
- * @param {HabitTracker} tracker - Instance tracker
- */
+// Menampilkan menu Kelola Profil
 function displayProfileMenu(tracker) {
     console.clear();
     UI.header('KELOLA PROFIL');
@@ -1008,9 +995,7 @@ function displayProfileMenu(tracker) {
     UI.separator();
 }
 
-/**
- * Menampilkan menu Kelola Kebiasaan
- */
+// Menampilkan menu Kelola Kebiasaan
 function displayHabitMenu() {
     console.clear();
     UI.header('KELOLA KEBIASAAN');
@@ -1037,295 +1022,6 @@ function displayHabitMenu() {
 // ============================================
 // MENU HANDLERS
 // ============================================
-
-/**
- * Handler untuk menu Kelola Profil
- * Menangani semua operasi profil (lihat, ganti, buat, hapus)
- * @param {HabitTracker} tracker - Instance tracker
- */
-/**
- * Handler untuk menu Kelola Profil
- * Menangani semua operasi profil (lihat, ganti, buat, hapus)
- * @param {HabitTracker} tracker - Instance tracker
- */
-async function handleProfileMenu(tracker) {
-    let running = true;
-    
-    while (running) {
-        displayProfileMenu(tracker);
-        // skipPause=true agar reminder tetap berjalan saat pilih menu
-        const choice = await askQuestion('\n> Menu Utama > Kelola Profil\nPilih menu (0-4): ', tracker, true);
-        
-        // Clear console kecuali pilihan 0 (kembali)
-        if (choice !== '0') console.clear();
-        
-        switch (choice) {
-            case '1': // Lihat profil
-                tracker.displayProfile();
-                break;
-            case '2': // Ganti profil
-                await tracker.selectProfile();
-                break;
-            case '3': // Buat profil baru
-                await tracker.createNewProfile();
-                break;
-            case '4': // Hapus profil
-                await tracker.deleteProfile();
-                break;
-            case '0': // Kembali ke menu utama
-                running = false;
-                break;
-            default: // Input tidak valid
-                if (choice.trim()) UI.error('Pilihan tidak valid.');
-                break;
-        }
-        
-        // Tampilkan prompt "Tekan Enter" kecuali pilihan 0 atau input kosong
-        if (choice !== '0' && choice.trim() && running) {
-            await askQuestion('\n[Tekan Enter untuk melanjutkan...]', tracker);
-        }
-    }
-}
-
-/**
- * Handler untuk menu Kelola Kebiasaan
- * Menangani semua operasi CRUD kebiasaan dan analisis
- * @param {HabitTracker} tracker - Instance tracker
- */
-async function handleHabitMenu(tracker) {
-    let running = true;
-    
-    while (running) {
-        displayHabitMenu();
-        // skipPause=true agar reminder tetap berjalan saat pilih menu
-        const choice = await askQuestion('\n> Menu Utama > Kelola Kebiasaan\nPilih menu (0-10): ', tracker, true);
-        
-        // Clear console kecuali pilihan 0 (kembali)
-        if (choice !== '0') console.clear();
-        
-        switch (choice) {
-            case '1': // Lihat semua kebiasaan
-                tracker.displayHabits('all');
-                break;
-            case '2': // Lihat per kategori
-                tracker.displayHabitsByCategory();
-                break;
-            case '3': // Kebiasaan aktif saja
-                tracker.displayHabits('active');
-                break;
-            case '4': // Kebiasaan selesai saja
-                tracker.displayHabits('completed');
-                break;
-            case '5': // Lihat statistik
-                tracker.displayStats();
-                break;
-            case '6': // Lihat riwayat
-                tracker.displayHistory();
-                break;
-            case '7': // Tambah kebiasaan baru
-                await handleAddHabit(tracker);
-                break;
-            case '8': // Tandai kebiasaan selesai
-                await handleCompleteHabit(tracker);
-                break;
-            case '9': // Edit kebiasaan
-                await handleEditHabit(tracker);
-                break;
-            case '10':  // Hapus kebiasaan
-                await handleDeleteHabit(tracker);
-                break;
-            case '0': // Kembali ke menu utama
-                running = false;
-                break;
-            default: // Input tidak valid
-                if (choice.trim()) UI.error('Pilihan tidak valid.');
-                break;
-        }
-        
-        if (choice !== '0' && choice.trim() && running) {
-            await askQuestion('\n[Tekan Enter untuk melanjutkan...]', tracker);
-        }
-    }
-}
-
-/**
- * Handler untuk tambah kebiasaan baru
- * Meminta input nama, target, dan kategori dari user
- * @param {HabitTracker} tracker - Instance tracker
- */
-async function handleAddHabit(tracker) {
-    if (!tracker.currentProfile) return UI.info('Tidak ada profil aktif.');
-    
-    // Minta input detail kebiasaan baru
-    UI.header('TAMBAH KEBIASAAN BARU');
-    const name = await askQuestion('Nama kebiasaan: ', tracker);
-    const frequency = await askQuestion('Target per minggu (1-7): ', tracker);
-    const category = await askCategory(tracker);
-    
-    const freq = parseInt(frequency);
-    // Validasi input
-    if (name && freq >= 1 && freq <= 7) {
-        tracker.addHabit(name, freq, category);
-        UI.success(`Kebiasaan "${name}" (${category}) berhasil ditambahkan!`);
-    } else {
-        UI.error('Input tidak valid.');
-    }
-}
-
-/**
- * Handler untuk tandai kebiasaan selesai
- * Menampilkan daftar dan meminta nomor habit yang selesai
- * @param {HabitTracker} tracker - Instance tracker
- */
-async function handleCompleteHabit(tracker) {
-    if (!tracker.currentProfile) return UI.info('Tidak ada profil aktif.');
-    
-    // Tampilkan daftar kebiasaan
-    tracker.displayHabits('all');
-    if (tracker.habits.length === 0) return;
-
-    // Minta input nomor kebiasaan yang selesai
-    const choice = await askQuestion('Nomor kebiasaan yang selesai (0=batal): ', tracker);
-    if (choice !== '0') {
-        const idx = parseInt(choice);
-        if (idx >= 1 && idx <= tracker.habits.length) {
-            tracker.completeHabit(idx);
-        } else {
-            UI.error('Nomor tidak valid.');
-        }
-    }
-}
-
-/**
- * Handler untuk edit kebiasaan
- * Meminta input field-field yang ingin diubah
- * @param {HabitTracker} tracker - Instance tracker
- */
-async function handleEditHabit(tracker) {
-    if (!tracker.currentProfile) return UI.info('Tidak ada profil aktif.');
-    
-    // Tampilkan daftar kebiasaan
-    tracker.displayHabits('all');
-    if (tracker.habits.length === 0) return;
-    
-    //  Minta input nomor kebiasaan yang akan diedit
-    const choice = await askQuestion('Nomor kebiasaan untuk diedit (0=batal): ', tracker);
-    if (choice === '0') return;
-    
-    //  Validasi nomor kebiasaan
-    const idx = parseInt(choice);
-    if (idx < 1 || idx > tracker.habits.length) return UI.error('Nomor tidak valid.');
-    
-    //  Tampilkan detail kebiasaan yang akan diedit
-    const habit = tracker.habits[idx - 1];
-    console.log(`\nEdit "${habit.name}"`);
-    console.log('(Kosongkan jika tidak ingin mengubah)\n');
-    
-    // Input field-field yang bisa diubah
-    const newName = await askQuestion(`Nama baru [${habit.name}]: `, tracker);
-    const newFreq = await askQuestion(`Target baru [${habit.targetFrequency}]: `, tracker);
-    
-    // Ubah kategori jika diinginkan
-    console.log(`\nKategori saat ini: ${habit.category}`);
-    const changeCat = await askQuestion('Ubah kategori? (y/n): ', tracker);
-    
-    // Jika ya, minta input kategori baru
-    let finalCat = null;
-    if (changeCat.toLowerCase() === 'y') {
-        finalCat = await askCategory(tracker);
-    }
-    
-    // Proses perubahan
-    const finalName = newName || null;
-    const finalFreq = newFreq ? parseInt(newFreq) : null;
-    
-    // Validasi target frequency jika diubah
-    if (finalName || finalFreq || finalCat) {
-        tracker.editHabit(idx, finalName, finalFreq, finalCat);
-    } else {
-        UI.info('Tidak ada perubahan.');
-    }
-}
-
-/**
- * Handler untuk hapus kebiasaan
- * Mendukung hapus satu habit atau hapus semua
- * @param {HabitTracker} tracker - Instance tracker
- */
-async function handleDeleteHabit(tracker) {
-    if (!tracker.currentProfile) return UI.info('Tidak ada profil aktif.');
-    if (tracker.habits.length === 0) return UI.info('Belum ada kebiasaan.');
-    
-    //  Tampilkan daftar kebiasaan
-    tracker.displayHabits('all');
-    console.log('\nOpsi Hapus:');
-    console.log('1. Hapus kebiasaan tertentu');
-    console.log('2. Hapus semua kebiasaan');
-    console.log('0. Batal');
-
-    // Minta input opsi hapus
-    const option = await askQuestion('\nPilih opsi (0-2): ', tracker);
-    
-    // Hapus kebiasaan tertentu
-    if (option === '1') {
-        // Hapus kebiasaan tertentu
-        const choice = await askQuestion('\nNomor kebiasaan untuk dihapus (0=batal): ', tracker);
-        if (choice === '0') return UI.info('Dibatalkan.');
-        
-        //  Validasi nomor kebiasaan
-        const idx = parseInt(choice);
-        if (idx >= 1 && idx <= tracker.habits.length) {
-            const habit = tracker.habits[idx - 1];
-            const confirm = await askQuestion(`Yakin hapus "${habit.name}"? (y/n): `, tracker);
-            if (confirm.toLowerCase() === 'y') {
-                tracker.deleteHabit(idx);
-            } else {
-                UI.info('Dibatalkan.');
-            }
-        } else {
-            UI.error('Nomor tidak valid.');
-        }
-    } else if (option === '2') {
-        // Hapus semua kebiasaan dengan konfirmasi ketat
-        console.log(`\n[!] PERINGATAN: Anda akan menghapus SEMUA ${tracker.habits.length} kebiasaan!`);
-        const confirm = await askQuestion('Ketik "HAPUS SEMUA" untuk konfirmasi: ', tracker);
-        
-        //  Proses hapus semua jika konfirmasi sesuai
-        if (confirm === 'HAPUS SEMUA') {
-            const count = tracker.habits.length;
-            tracker.habits = [];
-            tracker.saveToFile();
-            UI.success(`Berhasil menghapus ${count} kebiasaan.`);
-        } else {
-            UI.info('Dibatalkan. Konfirmasi tidak sesuai.');
-        }
-    } else if (option === '0') {
-        UI.info('Dibatalkan.');
-    } else {
-        UI.error('Pilihan tidak valid.');
-    }
-}
-
-// Demonstrasi penggunaan while dan for loop
-function displayLoopDemo(habits, type) {
-    const title = type === 'while' ? 'WHILE LOOP' : 'FOR LOOP';
-    UI.header(`DEMONSTRASI ${title}`);
-    
-    if (habits.length === 0) {
-        console.log('Belum ada kebiasaan.');
-    } else if (type === 'while') {
-        let i = 0;
-        while (i < habits.length) {
-            console.log(`${i + 1}. ${habits[i].name} - ${habits[i].isCompletedThisWeek() ? 'SELESAI' : 'AKTIF'}`);
-            i++;
-        }
-    } else {
-        for (let i = 0; i < habits.length; i++) {
-            console.log(`${i + 1}. ${habits[i].name} - ${habits[i].isCompletedThisWeek() ? 'SELESAI' : 'AKTIF'}`);
-        }
-    }
-    console.log('='.repeat(60) + '\n');
-}
 
 // Handler untuk menu utama
 async function handleMainMenu(tracker) {
@@ -1393,14 +1089,276 @@ async function handleMainMenu(tracker) {
     rl.close();
 }
 
+// Handler untuk menu Kelola Profil
+async function handleProfileMenu(tracker) {
+    let running = true;
+    
+    while (running) {
+        displayProfileMenu(tracker);
+        // skipPause=true agar reminder tetap berjalan saat pilih menu
+        const choice = await askQuestion('\n> Menu Utama > Kelola Profil\nPilih menu (0-4): ', tracker, true);
+        
+        // Clear console kecuali pilihan 0 (kembali)
+        if (choice !== '0') console.clear();
+        
+        switch (choice) {
+            case '1': // Lihat profil
+                tracker.displayProfile();
+                break;
+            case '2': // Ganti profil
+                await tracker.selectProfile();
+                break;
+            case '3': // Buat profil baru
+                await tracker.createNewProfile();
+                break;
+            case '4': // Hapus profil
+                await tracker.deleteProfile();
+                break;
+            case '0': // Kembali ke menu utama
+                running = false;
+                break;
+            default: // Input tidak valid
+                if (choice.trim()) UI.error('Pilihan tidak valid.');
+                break;
+        }
+        
+        // Tampilkan prompt "Tekan Enter" kecuali pilihan 0 atau input kosong
+        if (choice !== '0' && choice.trim() && running) {
+            await askQuestion('\n[Tekan Enter untuk melanjutkan...]', tracker);
+        }
+    }
+}
+
+//Handler untuk menu Kelola Kebiasaan
+async function handleHabitMenu(tracker) {
+    let running = true;
+    
+    while (running) {
+        displayHabitMenu();
+        // skipPause=true agar reminder tetap berjalan saat pilih menu
+        const choice = await askQuestion('\n> Menu Utama > Kelola Kebiasaan\nPilih menu (0-10): ', tracker, true);
+        
+        // Clear console kecuali pilihan 0 (kembali)
+        if (choice !== '0') console.clear();
+        
+        switch (choice) {
+            case '1': // Lihat semua kebiasaan
+                tracker.displayHabits('all');
+                break;
+            case '2': // Lihat per kategori
+                tracker.displayHabitsByCategory();
+                break;
+            case '3': // Kebiasaan aktif saja
+                tracker.displayHabits('active');
+                break;
+            case '4': // Kebiasaan selesai saja
+                tracker.displayHabits('completed');
+                break;
+            case '5': // Lihat statistik
+                tracker.displayStats();
+                break;
+            case '6': // Lihat riwayat
+                tracker.displayHistory();
+                break;
+            case '7': // Tambah kebiasaan baru
+                await handleAddHabit(tracker);
+                break;
+            case '8': // Tandai kebiasaan selesai
+                await handleCompleteHabit(tracker);
+                break;
+            case '9': // Edit kebiasaan
+                await handleEditHabit(tracker);
+                break;
+            case '10':  // Hapus kebiasaan
+                await handleDeleteHabit(tracker);
+                break;
+            case '0': // Kembali ke menu utama
+                running = false;
+                break;
+            default: // Input tidak valid
+                if (choice.trim()) UI.error('Pilihan tidak valid.');
+                break;
+        }
+        
+        if (choice !== '0' && choice.trim() && running) {
+            await askQuestion('\n[Tekan Enter untuk melanjutkan...]', tracker);
+        }
+    }
+}
+
+// Handler untuk tambah kebiasaan baru
+async function handleAddHabit(tracker) {
+    if (!tracker.currentProfile) return UI.info('Tidak ada profil aktif.');
+    
+    // Minta input detail kebiasaan baru
+    UI.header('TAMBAH KEBIASAAN BARU');
+    const name = await askQuestion('Nama kebiasaan: ', tracker);
+    const frequency = await askQuestion('Target per minggu (1-7): ', tracker);
+    const category = await askCategory(tracker);
+    
+    const freq = parseInt(frequency);
+    // Validasi input
+    if (name && freq >= 1 && freq <= CONFIG.DAYS_IN_WEEK) {
+        tracker.addHabit(name, freq, category);
+        UI.success(`Kebiasaan "${name}" (${category}) berhasil ditambahkan!`);
+    } else {
+        UI.error('Input tidak valid.');
+    }
+}
+
+// Handler untuk tandai kebiasaan selesai
+async function handleCompleteHabit(tracker) {
+    if (!tracker.currentProfile) return UI.info('Tidak ada profil aktif.');
+    
+    // Tampilkan daftar kebiasaan
+    tracker.displayHabits('all');
+    if (tracker.habits.length === 0) return;
+
+    // Minta input nomor kebiasaan yang selesai
+    const choice = await askQuestion('Nomor kebiasaan yang selesai (0=batal): ', tracker);
+    if (choice !== '0') {
+        const idx = parseInt(choice);
+        if (idx >= 1 && idx <= tracker.habits.length) {
+            tracker.completeHabit(idx);
+        } else {
+            UI.error('Nomor tidak valid.');
+        }
+    }
+}
+
+// Handler untuk edit kebiasaan
+async function handleEditHabit(tracker) {
+    if (!tracker.currentProfile) return UI.info('Tidak ada profil aktif.');
+    
+    // Tampilkan daftar kebiasaan
+    tracker.displayHabits('all');
+    if (tracker.habits.length === 0) return;
+    
+    //  Minta input nomor kebiasaan yang akan diedit
+    const choice = await askQuestion('Nomor kebiasaan untuk diedit (0=batal): ', tracker);
+    if (choice === '0') return;
+    
+    //  Validasi nomor kebiasaan
+    const idx = parseInt(choice);
+    if (idx < 1 || idx > tracker.habits.length) return UI.error('Nomor tidak valid.');
+    
+    //  Tampilkan detail kebiasaan yang akan diedit
+    const habit = tracker.habits[idx - 1];
+    console.log(`\nEdit "${habit.name}"`);
+    console.log('(Kosongkan jika tidak ingin mengubah)\n');
+    
+    // Input field-field yang bisa diubah
+    const newName = await askQuestion(`Nama baru [${habit.name}]: `, tracker);
+    const newFreq = await askQuestion(`Target baru [${habit.targetFrequency}]: `, tracker);
+    
+    // Ubah kategori jika diinginkan
+    console.log(`\nKategori saat ini: ${habit.category}`);
+    const changeCat = await askQuestion('Ubah kategori? (y/n): ', tracker);
+    
+    // Jika ya, minta input kategori baru
+    let finalCat = null;
+    if (changeCat.toLowerCase() === 'y') {
+        finalCat = await askCategory(tracker);
+    }
+    
+    // Proses perubahan
+    const finalName = newName || null;
+    const finalFreq = newFreq ? parseInt(newFreq) : null;
+    
+    // Validasi target frequency jika diubah
+    if (finalName || finalFreq || finalCat) {
+        tracker.editHabit(idx, finalName, finalFreq, finalCat);
+    } else {
+        UI.info('Tidak ada perubahan.');
+    }
+}
+
+// Handler untuk hapus kebiasaan
+async function handleDeleteHabit(tracker) {
+    if (!tracker.currentProfile) return UI.info('Tidak ada profil aktif.');
+    if (tracker.habits.length === 0) return UI.info('Belum ada kebiasaan.');
+    
+    //  Tampilkan daftar kebiasaan
+    tracker.displayHabits('all');
+    console.log('\nOpsi Hapus:');
+    console.log('1. Hapus kebiasaan tertentu');
+    console.log('2. Hapus semua kebiasaan');
+    console.log('0. Batal');
+
+    // Minta input opsi hapus
+    const option = await askQuestion('\nPilih opsi (0-2): ', tracker);
+    
+    // Hapus kebiasaan tertentu
+    if (option === '1') {
+        // Hapus kebiasaan tertentu
+        const choice = await askQuestion('\nNomor kebiasaan untuk dihapus (0=batal): ', tracker);
+        if (choice === '0') return UI.info('Dibatalkan.');
+        
+        //  Validasi nomor kebiasaan
+        const idx = parseInt(choice);
+        if (idx >= 1 && idx <= tracker.habits.length) {
+            const habit = tracker.habits[idx - 1];
+            const confirm = await askQuestion(`Yakin hapus "${habit.name}"? (y/n): `, tracker);
+            if (confirm.toLowerCase() === 'y') {
+                tracker.deleteHabit(idx);
+            } else {
+                UI.info('Dibatalkan.');
+            }
+        } else {
+            UI.error('Nomor tidak valid.');
+        }
+    } else if (option === '2') {
+        // Hapus semua kebiasaan dengan konfirmasi ketat
+        console.log(`\n[!] PERINGATAN: Anda akan menghapus SEMUA ${tracker.habits.length} kebiasaan!`);
+        const confirm = await askQuestion('Ketik "HAPUS SEMUA" untuk konfirmasi: ', tracker);
+        
+        //  Proses hapus semua jika konfirmasi sesuai
+        if (confirm === 'HAPUS SEMUA') {
+            const count = tracker.habits.length;
+            tracker.habits = [];
+            tracker.saveToFile();
+            UI.success(`Berhasil menghapus ${count} kebiasaan.`);
+        } else {
+            UI.info('Dibatalkan. Konfirmasi tidak sesuai.');
+        }
+    } else if (option === '0') {
+        UI.info('Dibatalkan.');
+    } else {
+        UI.error('Pilihan tidak valid.');
+    }
+}
+
+/** 
+* Demonstrasi penggunaan while dan for loop
+* @param {Array} habits - Daftar kebiasaan
+* @param {string} type - 'while' atau 'for' 
+*/
+function displayLoopDemo(habits, type) {
+    const title = type === 'while' ? 'WHILE LOOP' : 'FOR LOOP';
+    UI.header(`DEMONSTRASI ${title}`);
+    
+    if (habits.length === 0) {
+        console.log('Belum ada kebiasaan.');
+    } else if (type === 'while') {
+        let i = 0;
+        while (i < habits.length) {
+            console.log(`${i + 1}. ${habits[i].name} - ${habits[i].isCompletedThisWeek() ? 'SELESAI' : 'AKTIF'}`);
+            i++;
+        }
+    } else {
+        for (let i = 0; i < habits.length; i++) {
+            console.log(`${i + 1}. ${habits[i].name} - ${habits[i].isCompletedThisWeek() ? 'SELESAI' : 'AKTIF'}`);
+        }
+    }
+    console.log('='.repeat(60) + '\n');
+}
+
 // ============================================
 // MAIN FUNCTION
 // ============================================
 
-/**
- * Fungsi utama aplikasi
- * Menangani first-time setup, login, dan main menu loop
- */
+// Fungsi utama aplikasi
+// Menangani first-time setup, login, dan main menu loop
 async function main() {
     console.clear();
     console.log('\n' + CONFIG.colors.cyan + '='.repeat(60));
@@ -1526,10 +1484,8 @@ async function main() {
 // RUN APPLICATION
 // ============================================
 
-/**
- * Entry point - Jalankan aplikasi
- * Catch error global dan cleanup resources jika terjadi error
- */
+// Entry point - Jalankan aplikasi
+// Catch error global dan cleanup resources jika terjadi error
 main().catch(error => {
     console.error('\n[X] Terjadi kesalahan:', error.message);
     rl.close();  // Pastikan readline interface ditutup

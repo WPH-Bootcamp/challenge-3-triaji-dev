@@ -29,7 +29,7 @@
       "longestStreak": 0
     }
   ],
-  "currentProfileId": 1762680192941.5928,
+  "currentProfileId": 1762674893190.6372,
   "profileHabits": {
     "1762674560919.5867": [
       {
@@ -38,8 +38,7 @@
         "targetFrequency": 7,
         "completions": [],
         "createdAt": "2025-11-09T07:54:37.793Z",
-        "category": "Kesehatan",
-        "priority": "normal"
+        "category": "Kesehatan"
       },
       {
         "id": 1762675112913.3826,
@@ -47,8 +46,7 @@
         "targetFrequency": 7,
         "completions": [],
         "createdAt": "2025-11-09T07:58:32.913Z",
-        "category": "Produktivitas",
-        "priority": "normal"
+        "category": "Produktivitas"
       },
       {
         "id": 1762675125257.2368,
@@ -56,8 +54,7 @@
         "targetFrequency": 7,
         "completions": [],
         "createdAt": "2025-11-09T07:58:45.257Z",
-        "category": "Umum",
-        "priority": "normal"
+        "category": "Umum"
       },
       {
         "id": 1762675199329.9458,
@@ -67,8 +64,7 @@
           "2025-11-08T17:00:00.000Z"
         ],
         "createdAt": "2025-11-09T07:59:59.329Z",
-        "category": "Hobi",
-        "priority": "normal"
+        "category": "Hobi"
       },
       {
         "id": 1762676265193.104,
@@ -76,8 +72,7 @@
         "targetFrequency": 7,
         "completions": [],
         "createdAt": "2025-11-09T08:17:45.193Z",
-        "category": "Kesehatan",
-        "priority": "normal"
+        "category": "Kesehatan"
       }
     ],
     "1762674893190.6372": [
@@ -89,8 +84,7 @@
           "2025-11-08T17:00:00.000Z"
         ],
         "createdAt": "2025-11-09T07:55:34.530Z",
-        "category": "Kesehatan",
-        "priority": "normal"
+        "category": "Kesehatan"
       },
       {
         "id": 1762674992137.7937,
@@ -98,8 +92,7 @@
         "targetFrequency": 7,
         "completions": [],
         "createdAt": "2025-11-09T07:56:32.137Z",
-        "category": "Produktivitas",
-        "priority": "normal"
+        "category": "Produktivitas"
       },
       {
         "id": 1762675057353.6572,
@@ -107,8 +100,15 @@
         "targetFrequency": 7,
         "completions": [],
         "createdAt": "2025-11-09T07:57:37.353Z",
-        "category": "Hobi",
-        "priority": "normal"
+        "category": "Hobi"
+      },
+      {
+        "id": 1762758485259.5562,
+        "name": "Minum Susu",
+        "targetFrequency": 7,
+        "completions": [],
+        "createdAt": "2025-11-10T07:08:05.259Z",
+        "category": "Kesehatan"
       }
     ],
     "1762675490236.1533": [
