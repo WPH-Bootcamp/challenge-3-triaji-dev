@@ -11,10 +11,7 @@ const readline = require('readline'); // Untuk input/output terminal
 const fs = require('fs');             // Untuk operasi file system
 const path = require('path');         // Untuk manipulasi path file
 
-// ============================================
-// CONSTANTS & CONFIGURATION
-// ============================================
-
+// ████████ CONSTANTS & CONFIGURATION ████████
 // Konfigurasi global aplikasi
 const CONFIG = {
     DATA_FILE: path.join(__dirname, 'habits-data.json'), // Path file penyimpanan data
@@ -38,10 +35,7 @@ const rl = readline.createInterface({
     output: process.stdout  // Output ke terminal
 });
 
-// ============================================
-// UTILITY FUNCTIONS
-// ============================================
-
+// ████████ UTILITY FUNCTIONS ████████
 // Object UI untuk fungsi-fungsi tampilan konsol
 const UI = {
     header: (title) => {
@@ -157,11 +151,7 @@ async function askCategory(tracker) {
     return categoryMap[choice] || 'Umum';
 }
 
-// ============================================
-// USER PROFILE CLASS
-// ============================================
-
-// Class untuk merepresentasikan profil pengguna
+// ████████ USER PROFILE CLASS ████████
 // Setiap user memiliki profil dengan stats dan riwayat tersendiri
 class UserProfile {
     constructor(name, id = null) {
@@ -201,12 +191,7 @@ class UserProfile {
         return habits.filter(h => h.isCompletedThisWeek()).length;
     }
 }
-
-// ============================================
-// HABIT CLASS
-// ============================================
-
-// Class untuk merepresentasikan satu kebiasaan
+// ████████ HABIT CLASS ████████
 // Menyimpan data kebiasaan, completion history, dan progress tracking
 class Habit {
     constructor(name, targetFrequency, category = 'Umum') {
@@ -320,11 +305,7 @@ class Habit {
     }
 }
 
-// ============================================
-// HABIT TRACKER CLASS
-// ============================================
-
-// Class utama untuk mengelola seluruh habit tracking system
+// ████████ HABIT TRACKER CLASS ████████
 // Menangani multi-profil, CRUD habits, reminder, dan file persistence
 class HabitTracker {
     constructor() {
@@ -336,7 +317,7 @@ class HabitTracker {
         this.loadFromFile();             // Load data dari file saat init
     }
     
-    // ========== HABIT MANAGEMENT ==========
+    // ██████████ HABIT MANAGEMENT ██████████
     
     /**
      * Menambah kebiasaan baru
@@ -402,11 +383,8 @@ class HabitTracker {
         UI.success(`Kebiasaan "${name}" berhasil dihapus.`);
     }
     
-    // ========== PROFILE MANAGEMENT ==========
-    
-    /**
-     * Membuat profil baru (async karena ada user input)
-     */
+    // ██████████ PROFILE MANAGEMENT ██████████
+    // Membuat profil baru (async karena ada user input)
     async createNewProfile() {
         UI.header('BUAT PROFIL BARU');
         const name = await askQuestion('Nama profil: ', this);
@@ -545,14 +523,8 @@ class HabitTracker {
         return data?.profileHabits?.[profileId]?.length || 0;
     }
     
-    // ========== DISPLAY METHODS ==========
-    
-    /**
-     * Menampilkan informasi detail profil saat ini
-     */
-    /**
-     * Menampilkan informasi detail profil saat ini
-     */
+    // ██████████ DISPLAY METHODS ██████████
+    // Menampilkan informasi detail profil saat ini
     displayProfile() {
         if (!this.currentProfile) return UI.info('Tidak ada profil aktif.');
         
@@ -567,9 +539,7 @@ class HabitTracker {
         console.log('='.repeat(60) + '\n');
     }
     
-    /**
-     * Menampilkan daftar semua profil dengan status aktif
-     */
+    // Menampilkan daftar semua profil dengan status aktif
     displayProfiles() {
         UI.header('DAFTAR PROFIL');
         
@@ -634,9 +604,7 @@ class HabitTracker {
         console.log('\n' + '='.repeat(60) + '\n');
     }
     
-    /**
-     * Menampilkan kebiasaan dikelompokkan per kategori
-     */
+    // Menampilkan kebiasaan dikelompokkan per kategori
     displayHabitsByCategory() {
         if (!this.currentProfile) return UI.info('Tidak ada profil aktif.');
         
@@ -658,9 +626,7 @@ class HabitTracker {
         console.log('\n' + '='.repeat(60) + '\n');
     }
     
-    /**
-     * Menampilkan statistik lengkap kebiasaan
-     */
+    // Menampilkan statistik lengkap kebiasaan
     displayStats() {
         if (!this.currentProfile) return UI.info('Tidak ada profil aktif.');
         
@@ -696,9 +662,7 @@ class HabitTracker {
         console.log('='.repeat(60) + '\n');
     }
     
-    /**
-     * Menampilkan riwayat penyelesaian 7 hari terakhir
-     */
+    // Menampilkan riwayat penyelesaian 7 hari terakhir
     displayHistory() {
         if (!this.currentProfile) return UI.info('Tidak ada profil aktif.');
         
@@ -735,11 +699,8 @@ class HabitTracker {
         console.log('\n' + '='.repeat(60) + '\n');
     }
     
-    // ========== REMINDER SYSTEM ==========
-    
-    /**
-     * Mengaktifkan sistem reminder otomatis
-     */
+    // ██████████ REMINDER SYSTEM ██████████
+    // Mengaktifkan sistem reminder otomatis
     startReminder() {
         if (this.reminderTimer) clearInterval(this.reminderTimer);
         this.reminderTimer = setInterval(() => this.showReminder(), CONFIG.REMINDER_INTERVAL);
@@ -747,9 +708,7 @@ class HabitTracker {
         UI.success('Pengingat diaktifkan (setiap 10 detik).');
     }
     
-    /**
-     * Menonaktifkan sistem reminder
-     */
+    // Menonaktifkan sistem reminder
     stopReminder() {
         if (this.reminderTimer) {
             clearInterval(this.reminderTimer);
@@ -759,17 +718,13 @@ class HabitTracker {
         }
     }
     
-    /**
-     * Toggle reminder on/off
-     */
+    // Toggle reminder on/off
     toggleReminder() {
         this.reminderEnabled ? this.stopReminder() : this.startReminder();
     }
     
-    /**
-     * Pause reminder (saat user sedang input)
-     * Timer di-clear tapi status enabled tetap true
-     */
+    // Pause reminder (saat user sedang input)
+    // Timer di-clear tapi status enabled tetap true
     pauseReminder() {
         if (this.reminderEnabled && this.reminderTimer) {
             clearInterval(this.reminderTimer);
@@ -777,19 +732,15 @@ class HabitTracker {
         }
     }
     
-    /**
-     * Resume reminder (setelah user selesai input)
-     * Restart timer jika reminder masih enabled
-     */
+    // Resume reminder (setelah user selesai input)
+    // Restart timer jika reminder masih enabled
     resumeReminder() {
         if (this.reminderEnabled && !this.reminderTimer) {
             this.reminderTimer = setInterval(() => this.showReminder(), CONFIG.REMINDER_INTERVAL);
         }
     }
     
-    /**
-     * Reset timer reminder (restart countdown dari awal)
-     */
+    // Reset timer reminder (restart countdown dari awal)
     resetReminder() {
         if (this.reminderEnabled && this.reminderTimer) {
             clearInterval(this.reminderTimer);
@@ -797,10 +748,8 @@ class HabitTracker {
         }
     }
     
-    /**
-     * Menampilkan notifikasi reminder
-     * Hanya muncul jika ada habits yang belum diselesaikan hari ini
-     */
+    // Menampilkan notifikasi reminder
+    // Hanya muncul jika ada habits yang belum diselesaikan hari ini
     showReminder() {
         // Jangan tampilkan jika tidak ada profil atau habits
         if (!this.currentProfile || this.habits.length === 0) return;
@@ -938,10 +887,7 @@ class HabitTracker {
     }
 }
 
-// ============================================
-// MENU DISPLAYS
-// ============================================
-
+// ████████ MENU DISPLAYS ████████
 // Menampilkan menu utama
 function displayMainMenu(tracker) {
     console.clear();
@@ -1019,10 +965,7 @@ function displayHabitMenu() {
     UI.separator();
 }
 
-// ============================================
-// MENU HANDLERS
-// ============================================
-
+// ████████ MENU HANDLERS ████████
 // Handler untuk menu utama
 async function handleMainMenu(tracker) {
     let running = true;
@@ -1353,12 +1296,8 @@ function displayLoopDemo(habits, type) {
     console.log('='.repeat(60) + '\n');
 }
 
-// ============================================
-// MAIN FUNCTION
-// ============================================
-
-// Fungsi utama aplikasi
-// Menangani first-time setup, login, dan main menu loop
+// ████████ MAIN FUNCTION ████████
+// Fungsi utama aplikasi, Menangani first-time setup, login, dan main menu loop
 async function main() {
     console.clear();
     console.log('\n' + CONFIG.colors.cyan + '='.repeat(60));
@@ -1480,12 +1419,8 @@ async function main() {
     await handleMainMenu(tracker);
 }
 
-// ============================================
-// RUN APPLICATION
-// ============================================
-
-// Entry point - Jalankan aplikasi
-// Catch error global dan cleanup resources jika terjadi error
+// ████████ RUN APPLICATION ████████
+// Entry point - Jalankan aplikasi, Catch error global dan cleanup resources jika terjadi error
 main().catch(error => {
     console.error('\n[X] Terjadi kesalahan:', error.message);
     rl.close();  // Pastikan readline interface ditutup
