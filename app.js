@@ -1344,7 +1344,7 @@ async function main() {
     // FIRST TIME USER - Belum ada profil sama sekali
     if (tracker.profiles.length === 0) {
         console.log('\nSepertinya ini adalah kunjungan pertama Anda!');
-        const userName = await askQuestion('Masukkan nama Anda? ', tracker);
+        const userName = await askQuestion('Masukkan nama Anda: ', tracker);
         
         // Jika user memasukkan nama, buat profil baru
         if (userName) {
