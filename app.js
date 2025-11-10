@@ -640,7 +640,7 @@ class HabitTracker {
         } else {
             // Tampilkan habits per kategori
             categories.forEach(cat => {
-                console.log(`\n[${cat}]`);
+                console.log(`\n` + CONFIG.colors.yellow + `[${cat}]` + CONFIG.colors.reset);
                 this.habits.filter(h => h.category === cat).forEach(habit => {
                     console.log(`   ${habit.getStatusIcon()} ${habit.name} (${habit.getThisWeekCompletions()}/${habit.targetFrequency})`);
                 });
@@ -787,13 +787,22 @@ class HabitTracker {
         
         // Tampilkan notifikasi dengan warna kuning
         console.clear();
-        console.log('\n' + CONFIG.colors.yellow + '─'.repeat(60));
-        console.log('PENGINGAT KEBIASAAN HARI INI :');
+        const boxWidth = 58;
+        const title = 'PENGINGAT KEBIASAAN HARI INI';
+        const titlePadding = Math.floor((boxWidth - title.length) / 2);
+        
+        console.log('\n' + CONFIG.colors.yellow + '┌' + '─'.repeat(boxWidth) + '┐');
+        console.log('│' + ' '.repeat(titlePadding) + title + ' '.repeat(boxWidth - titlePadding - title.length) + '│');
+        console.log('├' + '─'.repeat(boxWidth) + '┤');
+        
         incomplete.forEach((h, i) => {
-            console.log(`${i + 1}. ${h.name} (${h.getThisWeekCompletions()}/${h.targetFrequency})`);
+            const content = `${i + 1}. ${h.name} (${h.getThisWeekCompletions()}/${h.targetFrequency})`;
+            const contentPadding = boxWidth - content.length - 2; // -2 untuk spasi kiri kanan
+            console.log('│ ' + content + ' '.repeat(contentPadding) + ' │');
         });
-        console.log('─'.repeat(60) + CONFIG.colors.reset);
-        console.log(CONFIG.colors.darkgray + 'Notifikasi: ' + CONFIG.colors.red + 'AKTIF. ' + CONFIG.colors.darkgray + '- (Matikan melalui menu utama)' + CONFIG.colors.reset);
+        
+        console.log('└' + '─'.repeat(boxWidth) + '┘' + CONFIG.colors.reset);
+        console.log(CONFIG.colors.darkgray + 'Notifikasi: ' + CONFIG.colors.red + 'AKTIF' + CONFIG.colors.reset + CONFIG.colors.darkgray + ' - Matikan melalui menu utama' + CONFIG.colors.reset);
         console.log(CONFIG.colors.darkgray + 'Tekan Enter untuk melanjutkan...' + CONFIG.colors.reset);
     }
     
@@ -1022,7 +1031,8 @@ async function handleMainMenu(tracker) {
                 break;
             case '6': // Demo loop
                 displayLoopDemo(tracker.habits, 'while');
-                await askQuestion('[Tekan Enter untuk melanjutkan ke FOR loop...]', tracker);
+                await askQuestion('\n[Tekan Enter untuk melanjutkan ke FOR LOOP...]', tracker);
+                console.clear();
                 displayLoopDemo(tracker.habits, 'for');
                 break;
             case '7': // Ekspor data
@@ -1308,22 +1318,70 @@ async function handleDeleteHabit(tracker) {
 */
 function displayLoopDemo(habits, type) {
     const title = type === 'while' ? 'WHILE LOOP' : 'FOR LOOP';
-    UI.header(`DEMONSTRASI ${title}`);
+    UI.header(`DEMO ${title}`);
     
     if (habits.length === 0) {
-        console.log('Belum ada kebiasaan.');
-    } else if (type === 'while') {
+        console.log(CONFIG.colors.red + 'Belum ada kebiasaan untuk ditampilkan.' + CONFIG.colors.reset);
+        console.log('Tambahkan kebiasaan terlebih dahulu melalui menu utama.\n');
+        UI.separator();
+        return;
+    }
+    
+    if (type === 'while') {
+        console.log(CONFIG.colors.bright + 'STRUKTUR KODE:' + CONFIG.colors.reset);
+        console.log('─'.repeat(60));
+        console.log(CONFIG.colors.darkgray + 
+`let i = 0;
+while (i < habits.length) {
+    const habit = habits[i];
+    const status = habit.isCompletedThisWeek() ? '✓' : '○';
+    console.log(status + ' ' + (i + 1) + '. ' + habit.name);
+    console.log('   Progress: ' + habit.getThisWeekCompletions()
+    + '/' + habit.targetFrequency);
+    i++;
+}` + CONFIG.colors.reset);
+        
+        console.log('\n' + CONFIG.colors.bright + 'IMPLEMENTASI:' + CONFIG.colors.reset);
+        console.log('─'.repeat(60));
+        
         let i = 0;
         while (i < habits.length) {
-            console.log(`${i + 1}. ${habits[i].name} - ${habits[i].isCompletedThisWeek() ? 'SELESAI' : 'AKTIF'}`);
+            const habit = habits[i];
+            const status = habit.isCompletedThisWeek() ? 
+                CONFIG.colors.green + '✓' + CONFIG.colors.reset : 
+                CONFIG.colors.yellow + '○' + CONFIG.colors.reset;
+            
+            console.log(`${status} ${i + 1}. ${CONFIG.colors.bright}${habit.name}${CONFIG.colors.reset}`);
+            console.log(`   Progress: ${habit.getThisWeekCompletions()}/${habit.targetFrequency} (${habit.getProgressPercentage().toFixed(0)}%)`);
             i++;
         }
+        console.log('─'.repeat(60));
+        
     } else {
+        console.log(CONFIG.colors.bright + 'STRUKTUR KODE:' + CONFIG.colors.reset);
+        console.log('─'.repeat(60));
+        console.log(CONFIG.colors.darkgray + 
+`for (let i = 0; i < habits.length; i++) {
+    const habit = habits[i];
+    const status = habit.isCompletedThisWeek() ? '✓' : '○';
+    console.log(status + ' ' + (i + 1) + '. ' + habit.name);
+    console.log('   Progress: ' + habit.getProgressBar());
+}` + CONFIG.colors.reset);
+        
+        console.log('\n' + CONFIG.colors.bright + 'IMPLEMENTASI:' + CONFIG.colors.reset);
+        console.log('─'.repeat(60));
+        
         for (let i = 0; i < habits.length; i++) {
-            console.log(`${i + 1}. ${habits[i].name} - ${habits[i].isCompletedThisWeek() ? 'SELESAI' : 'AKTIF'}`);
+            const habit = habits[i];
+            const status = habit.isCompletedThisWeek() ? 
+                CONFIG.colors.green + '✓' + CONFIG.colors.reset : 
+                CONFIG.colors.yellow + '○' + CONFIG.colors.reset;
+            
+            console.log(`${status} ${i + 1}. ${CONFIG.colors.bright}${habit.name}${CONFIG.colors.reset}`);
+            console.log(`   Progress: ${habit.getProgressBar()}`);
         }
+        console.log('─'.repeat(60));
     }
-    console.log('═'.repeat(60) + '\n');
 }
 
 // ╔════════════════════════════════════════════╗
