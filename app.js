@@ -16,21 +16,19 @@ const path = require('path');
 // ║           CONSTANTS & CONFIGURATION        ║
 // ╚════════════════════════════════════════════╝
 
-const CONFIG = {
-    DATA_FILE: path.join(__dirname, 'habits-data.json'),
-    REMINDER_INTERVAL: 10000,
-    DAYS_IN_WEEK: 7,
-    colors: {
-        reset: '\x1b[0m',
-        bright: '\x1b[1m',
-        green: '\x1b[32m',
-        yellow: '\x1b[33m',
-        red: '\x1b[31m',
-        cyan: '\x1b[36m',
-        magenta: '\x1b[35m',
-        darkgray: '\x1b[90m'
-    }
-};
+const DATA_FILE = path.join(__dirname, 'habits-data.json');
+const REMINDER_INTERVAL = 10000;
+const DAYS_IN_WEEK = 7;
+const colors = {
+    reset: '\x1b[0m',
+    bright: '\x1b[1m',
+    green: '\x1b[32m',
+    yellow: '\x1b[33m',
+    red: '\x1b[31m',
+    cyan: '\x1b[36m',
+    magenta: '\x1b[35m',
+    darkgray: '\x1b[90m'
+}
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -49,13 +47,13 @@ const rl = readline.createInterface({
 const UI = {
     header: (title) => {
         console.log('\n' + '═'.repeat(60));
-        console.log(CONFIG.colors.cyan + title + CONFIG.colors.reset);
+        console.log(colors.cyan + title + colors.reset);
         console.log('═'.repeat(60));
     },
     separator: () => console.log('─'.repeat(60)),
-    success: (msg) => console.log(`\n${CONFIG.colors.green}[OK] ${msg}${CONFIG.colors.reset}`),
-    error: (msg) => console.log(`\n${CONFIG.colors.red}[X] ${msg}${CONFIG.colors.reset}`),
-    info: (msg) => console.log(`\n${CONFIG.colors.red}[!] ${msg}${CONFIG.colors.reset}`)
+    success: (msg) => console.log(`\n${colors.green}[OK] ${msg}${colors.reset}`),
+    error: (msg) => console.log(`\n${colors.red}[X] ${msg}${colors.reset}`),
+    info: (msg) => console.log(`\n${colors.red}[!] ${msg}${colors.reset}`)
 };
 
 const DateUtils = {
@@ -86,8 +84,8 @@ const DateUtils = {
 const FileManager = {
     read: () => {
         try {
-            if (!fs.existsSync(CONFIG.DATA_FILE)) return null;
-            return JSON.parse(fs.readFileSync(CONFIG.DATA_FILE, 'utf8'));
+            if (!fs.existsSync(DATA_FILE)) return null;
+            return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
         } catch (error) {
             console.error('[X] Error reading file:', error.message);
             return null;
@@ -95,7 +93,7 @@ const FileManager = {
     },
     write: (data) => {
         try {
-            fs.writeFileSync(CONFIG.DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
+            fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
             return true;
         } catch (error) {
             console.error('[X] Error writing file:', error.message);
@@ -507,7 +505,7 @@ class HabitTracker {
             this.habits = data.profileHabits[profileId].map(hData => {
                 const habit = new Habit(
                     hData.name || 'Kebiasaan',
-                    hData.targetFrequency || CONFIG.DAYS_IN_WEEK,
+                    hData.targetFrequency || DAYS_IN_WEEK,
                     hData.category || 'Umum'
                 );
                 habit.id = hData.id;
@@ -570,9 +568,9 @@ class HabitTracker {
         } else {
             this.profiles.forEach((profile, i) => {
                 const active = this.currentProfile?.id === profile.id ? 
-                    ` ${CONFIG.colors.yellow}(AKTIF)${CONFIG.colors.reset}` : '';
+                    ` ${colors.yellow}(AKTIF)${colors.reset}` : '';
                 const count = this.getProfileHabitsCount(profile.id);
-                console.log(`${i + 1}. ${CONFIG.colors.bright}${profile.name}${CONFIG.colors.reset}${active} (${count} kebiasaan)`);
+                console.log(`${i + 1}. ${colors.bright}${profile.name}${colors.reset}${active} (${count} kebiasaan)`);
                 console.log(`   Bergabung: ${new Date(profile.joinDate).toLocaleDateString('id-ID')}`);
             });
         }
@@ -602,7 +600,7 @@ class HabitTracker {
                 console.log('Belum ada kebiasaan.');
             } else {
                 console.log(filter === 'active' ? 
-                    CONFIG.colors.green + 'Selamat! Semua kebiasaan selesai! 🎉' + CONFIG.colors.reset :
+                    colors.green + 'Selamat! Semua kebiasaan selesai! 🎉' + colors.reset :
                     'Belum ada kebiasaan selesai minggu ini.');
             }
         } else {
@@ -613,7 +611,7 @@ class HabitTracker {
                 console.log(`\n${index}. ${habit.getStatusIcon()} ${habit.name}${todayMark}`);
                 console.log(`   Kategori: ${habit.category}`);
                 console.log(`   Target: ${habit.targetFrequency}x/minggu | Progress: ${habit.getThisWeekCompletions()}/${habit.targetFrequency} (${habit.getProgressPercentage().toFixed(0)}%)`);
-                console.log(CONFIG.colors.yellow + `   ${habit.getProgressBar()}` + CONFIG.colors.reset);
+                console.log(colors.yellow + `   ${habit.getProgressBar()}` + colors.reset);
                 console.log(`   Streak: ${habit.getCurrentStreak()} hari berturut-turut`);
             });
         }
@@ -631,7 +629,7 @@ class HabitTracker {
             console.log('Belum ada kebiasaan.');
         } else {
             categories.forEach(cat => {
-                console.log(`\n` + CONFIG.colors.yellow + `[${cat}]` + CONFIG.colors.reset);
+                console.log(`\n` + colors.yellow + `[${cat}]` + colors.reset);
                 this.habits.filter(h => h.category === cat).forEach(habit => {
                     console.log(`   ${habit.getStatusIcon()} ${habit.name} (${habit.getThisWeekCompletions()}/${habit.targetFrequency})`);
                 });
@@ -684,7 +682,7 @@ class HabitTracker {
         } else {
             const today = DateUtils.today();
             
-            for (let i = CONFIG.DAYS_IN_WEEK - 1; i >= 0; i--) {
+            for (let i = DAYS_IN_WEEK - 1; i >= 0; i--) {
                 const date = new Date(today);
                 date.setDate(today.getDate() - i);
                 
@@ -725,7 +723,7 @@ class HabitTracker {
     startReminder() {
         this.stopReminder();
         
-        this.reminderTimer = setInterval(() => this.showReminder(), CONFIG.REMINDER_INTERVAL);
+        this.reminderTimer = setInterval(() => this.showReminder(), REMINDER_INTERVAL);
         this.reminderEnabled = true;
         this.reminderDots = 0;
         this.reminderShown = false;
@@ -772,7 +770,7 @@ class HabitTracker {
     // Flow: Resume Reminder -> Set New Reminder Timer -> Set Dot Animation Timer
     resumeReminder() {
         if (this.reminderEnabled && !this.reminderTimer) {
-            this.reminderTimer = setInterval(() => this.showReminder(), CONFIG.REMINDER_INTERVAL);
+            this.reminderTimer = setInterval(() => this.showReminder(), REMINDER_INTERVAL);
             this.reminderDots = 0;
             this.reminderShown = false;
             this.reminderDotTimer = setInterval(() => {
@@ -786,7 +784,7 @@ class HabitTracker {
     resetReminder() {
         if (this.reminderEnabled && this.reminderTimer) {
             clearInterval(this.reminderTimer);
-            this.reminderTimer = setInterval(() => this.showReminder(), CONFIG.REMINDER_INTERVAL);
+            this.reminderTimer = setInterval(() => this.showReminder(), REMINDER_INTERVAL);
             this.reminderDots = 0;
             this.reminderShown = false;
             
@@ -826,26 +824,26 @@ class HabitTracker {
         const boxWidth = 58;
         const title = 'PENGINGAT KEBIASAAN HARI INI';
         const titlePadding = Math.floor((boxWidth - title.length) / 2);
-        const headerColor = this.reminderCount % 2 === 0 ? CONFIG.colors.yellow : CONFIG.colors.cyan;
+        const headerColor = this.reminderCount % 2 === 0 ? colors.yellow : colors.cyan;
         
-        console.log('\n' + headerColor + CONFIG.colors.bright + '┌' + '─'.repeat(boxWidth) + '┐');
+        console.log('\n' + headerColor + colors.bright + '┌' + '─'.repeat(boxWidth) + '┐');
         console.log('│' + ' '.repeat(titlePadding) + title + ' '.repeat(boxWidth - titlePadding - title.length) + '│');
-        console.log('├' + '─'.repeat(boxWidth) + '┤' + CONFIG.colors.reset);
+        console.log('├' + '─'.repeat(boxWidth) + '┤' + colors.reset);
         
         incomplete.forEach((h, i) => {
             const content = `${i + 1}. ${h.name} (${h.getThisWeekCompletions()}/${h.targetFrequency})`;
             const contentPadding = boxWidth - content.length - 2;
-            console.log(headerColor + '│' + CONFIG.colors.reset + ' ' + content + ' '.repeat(contentPadding) + ' ' + headerColor + '│' + CONFIG.colors.reset);
+            console.log(headerColor + '│' + colors.reset + ' ' + content + ' '.repeat(contentPadding) + ' ' + headerColor + '│' + colors.reset);
         });
         
-        console.log(headerColor + CONFIG.colors.bright + '└' + '─'.repeat(boxWidth) + '┘' + CONFIG.colors.reset);
+        console.log(headerColor + colors.bright + '└' + '─'.repeat(boxWidth) + '┘' + colors.reset);
         
         const dots = '•'.repeat(this.reminderDots);
         const remaining = 11 - this.reminderDots;
-        const dotsLine = `Countdown: ${headerColor}${dots}${CONFIG.colors.darkgray}${'•'.repeat(remaining)}${CONFIG.colors.reset} ${headerColor}[${remaining}s]${CONFIG.colors.reset}`;
+        const dotsLine = `Countdown: ${headerColor}${dots}${colors.darkgray}${'•'.repeat(remaining)}${colors.reset} ${headerColor}[${remaining}s]${colors.reset}`;
         
         console.log(dotsLine);
-        console.log(CONFIG.colors.darkgray + 'Tekan Enter untuk melanjutkan...' + CONFIG.colors.reset);
+        console.log(colors.darkgray + 'Tekan Enter untuk melanjutkan...' + colors.reset);
     }
     
     // ██ FILE OPERATIONS
@@ -984,27 +982,27 @@ function displayMainMenu(tracker) {
     const reminderStatus = tracker.reminderEnabled ? 'AKTIF' : 'NONAKTIF';
     
     console.log('\n' + '═'.repeat(60));
-    console.log(CONFIG.colors.cyan + 'HABIT TRACKER - MENU UTAMA' + CONFIG.colors.reset);
+    console.log(colors.cyan + 'HABIT TRACKER - MENU UTAMA' + colors.reset);
     console.log('═'.repeat(60));
-    console.log(CONFIG.colors.yellow + `Profil: ` + CONFIG.colors.magenta + profileName);
-    console.log(CONFIG.colors.yellow + `Kebiasaan: ${active} aktif, ${completed} selesai`);
+    console.log(colors.yellow + `Profil: ` + colors.magenta + profileName);
+    console.log(colors.yellow + `Kebiasaan: ${active} aktif, ${completed} selesai`);
     if (pending > 0) console.log(`Pending hari ini: ${pending} kebiasaan`);
-    console.log(`Streak: ${streak} hari` + CONFIG.colors.reset);
+    console.log(`Streak: ${streak} hari` + colors.reset);
     console.log('═'.repeat(60));
-    console.log(CONFIG.colors.cyan + 'Kelola:' + CONFIG.colors.reset);
+    console.log(colors.cyan + 'Kelola:' + colors.reset);
     console.log('1. Kelola Profil');
     console.log('2. Kelola Kebiasaan');
     UI.separator();
-    console.log(CONFIG.colors.cyan + 'Shortcut:' + CONFIG.colors.reset);
+    console.log(colors.cyan + 'Shortcut:' + colors.reset);
     console.log('3. Lihat Semua Kebiasaan');
     console.log('4. Tambah Kebiasaan Baru');
     console.log('5. Tandai Kebiasaan Selesai');
     UI.separator();
-    console.log(CONFIG.colors.cyan + 'Utilitas:' + CONFIG.colors.reset);
+    console.log(colors.cyan + 'Utilitas:' + colors.reset);
     console.log('6. Demo Loop');
     console.log('7. Ekspor Data');
     console.log('8. Generate Demo Kebiasaan');
-    console.log(`9. Reminder ` + CONFIG.colors.magenta + `(${reminderStatus})` + CONFIG.colors.reset);
+    console.log(`9. Reminder ` + colors.magenta + `(${reminderStatus})` + colors.reset);
     UI.separator();
     console.log('0. Keluar');
     UI.separator();
@@ -1015,8 +1013,8 @@ function displayMainMenu(tracker) {
 function displayProfileMenu(tracker) {
     console.clear();
     UI.header('KELOLA PROFIL');
-    console.log('Profil Aktif: ' + CONFIG.colors.magenta + 
-        (tracker.currentProfile ? tracker.currentProfile.name : 'Tidak ada') + CONFIG.colors.reset);
+    console.log('Profil Aktif: ' + colors.magenta + 
+        (tracker.currentProfile ? tracker.currentProfile.name : 'Tidak ada') + colors.reset);
     UI.separator();
     console.log('1. Lihat Profil Saya');
     console.log('2. Ganti Profil');
@@ -1032,17 +1030,17 @@ function displayProfileMenu(tracker) {
 function displayHabitMenu() {
     console.clear();
     UI.header('KELOLA KEBIASAAN');
-    console.log(CONFIG.colors.cyan + 'Tampilan:' + CONFIG.colors.reset);
+    console.log(colors.cyan + 'Tampilan:' + colors.reset);
     console.log('1. Lihat Semua Kebiasaan');
     console.log('2. Lihat per Kategori');
     console.log('3. Kebiasaan Aktif Saja');
     console.log('4. Kebiasaan Selesai Saja');
     UI.separator();
-    console.log(CONFIG.colors.cyan + 'Analisis:' + CONFIG.colors.reset);
+    console.log(colors.cyan + 'Analisis:' + colors.reset);
     console.log('5. Lihat Statistik');
     console.log('6. Lihat Riwayat (7 hari)');
     UI.separator();
-    console.log(CONFIG.colors.cyan + 'Aksi:' + CONFIG.colors.reset);
+    console.log(colors.cyan + 'Aksi:' + colors.reset);
     console.log('7. Tambah Kebiasaan Baru');
     console.log('8. Tandai Kebiasaan Selesai');
     console.log('9. Edit Kebiasaan');
@@ -1249,7 +1247,7 @@ async function handleAddHabit(tracker) {
     const category = await askCategory(tracker);
     
     const freq = parseInt(frequency);
-    if (name && freq >= 1 && freq <= CONFIG.DAYS_IN_WEEK) {
+    if (name && freq >= 1 && freq <= DAYS_IN_WEEK) {
         tracker.addHabit(name, freq, category);
         UI.success(`Kebiasaan "${name}" (${category}) berhasil ditambahkan!`);
     } else {
@@ -1380,16 +1378,16 @@ function displayLoopDemo(habits, type) {
     UI.header(`DEMO ${title}`);
     
     if (habits.length === 0) {
-        console.log(CONFIG.colors.red + 'Belum ada kebiasaan untuk ditampilkan.' + CONFIG.colors.reset);
+        console.log(colors.red + 'Belum ada kebiasaan untuk ditampilkan.' + colors.reset);
         console.log('Tambahkan kebiasaan terlebih dahulu melalui menu utama.\n');
         UI.separator();
         return;
     }
     
     if (type === 'while') {
-        console.log(CONFIG.colors.bright + 'STRUKTUR KODE:' + CONFIG.colors.reset);
+        console.log(colors.bright + 'STRUKTUR KODE:' + colors.reset);
         console.log('─'.repeat(60));
-        console.log(CONFIG.colors.darkgray + 
+        console.log(colors.darkgray + 
 `let i = 0;
 while (i < habits.length) {
     const habit = habits[i];
@@ -1398,45 +1396,45 @@ while (i < habits.length) {
     console.log('   Progress: ' + habit.getThisWeekCompletions()
     + '/' + habit.targetFrequency);
     i++;
-}` + CONFIG.colors.reset);
+}` + colors.reset);
         
-        console.log('\n' + CONFIG.colors.bright + 'IMPLEMENTASI:' + CONFIG.colors.reset);
+        console.log('\n' + colors.bright + 'IMPLEMENTASI:' + colors.reset);
         console.log('─'.repeat(60));
         
         let i = 0;
         while (i < habits.length) {
             const habit = habits[i];
             const status = habit.isCompletedThisWeek() ? 
-                CONFIG.colors.green + '✓' + CONFIG.colors.reset : 
-                CONFIG.colors.yellow + '○' + CONFIG.colors.reset;
+                colors.green + '✓' + colors.reset : 
+                colors.yellow + '○' + colors.reset;
             
-            console.log(`${status} ${i + 1}. ${CONFIG.colors.bright}${habit.name}${CONFIG.colors.reset}`);
+            console.log(`${status} ${i + 1}. ${colors.bright}${habit.name}${colors.reset}`);
             console.log(`   Progress: ${habit.getThisWeekCompletions()}/${habit.targetFrequency} (${habit.getProgressPercentage().toFixed(0)}%)`);
             i++;
         }
         console.log('─'.repeat(60));
         
     } else {
-        console.log(CONFIG.colors.bright + 'STRUKTUR KODE:' + CONFIG.colors.reset);
+        console.log(colors.bright + 'STRUKTUR KODE:' + colors.reset);
         console.log('─'.repeat(60));
-        console.log(CONFIG.colors.darkgray + 
+        console.log(colors.darkgray + 
 `for (let i = 0; i < habits.length; i++) {
     const habit = habits[i];
     const status = habit.isCompletedThisWeek() ? '✓' : '○';
     console.log(status + ' ' + (i + 1) + '. ' + habit.name);
     console.log('   Progress: ' + habit.getProgressBar());
-}` + CONFIG.colors.reset);
+}` + colors.reset);
         
-        console.log('\n' + CONFIG.colors.bright + 'IMPLEMENTASI:' + CONFIG.colors.reset);
+        console.log('\n' + colors.bright + 'IMPLEMENTASI:' + colors.reset);
         console.log('─'.repeat(60));
         
         for (let i = 0; i < habits.length; i++) {
             const habit = habits[i];
             const status = habit.isCompletedThisWeek() ? 
-                CONFIG.colors.green + '✓' + CONFIG.colors.reset : 
-                CONFIG.colors.yellow + '○' + CONFIG.colors.reset;
+                colors.green + '✓' + colors.reset : 
+                colors.yellow + '○' + colors.reset;
             
-            console.log(`${status} ${i + 1}. ${CONFIG.colors.bright}${habit.name}${CONFIG.colors.reset}`);
+            console.log(`${status} ${i + 1}. ${colors.bright}${habit.name}${colors.reset}`);
             console.log(`   Progress: ${habit.getProgressBar()}`);
         }
         console.log('─'.repeat(60));
@@ -1459,10 +1457,10 @@ while (i < habits.length) {
 // @return {Promise<void>}
 async function main() {
     console.clear();
-    console.log('\n' + CONFIG.colors.cyan + '═'.repeat(60));
+    console.log('\n' + colors.cyan + '═'.repeat(60));
     console.log('SELAMAT DATANG DI HABIT TRACKER');
     console.log('Bangun kebiasaan baik, capai tujuan Anda!');
-    console.log('═'.repeat(60) + CONFIG.colors.reset);
+    console.log('═'.repeat(60) + colors.reset);
     
     const tracker = new HabitTracker();
     
@@ -1504,17 +1502,17 @@ async function setupFirstTimeUser(tracker) {
 // @param {HabitTracker} tracker - Instance HabitTracker
 // @return {Promise<void>}
 async function handleReturningUser(tracker) {
-    console.log('\n' + CONFIG.colors.yellow + 'Data profil ditemukan!' + CONFIG.colors.reset);
+    console.log('\n' + colors.yellow + 'Data profil ditemukan!' + colors.reset);
     UI.header('PILIH PROFIL');
     
     tracker.profiles.forEach((profile, i) => {
         const count = tracker.getProfileHabitsCount(profile.id);
-        console.log(`${i + 1}. ${CONFIG.colors.bright}${profile.name}${CONFIG.colors.reset} (${count} kebiasaan)`);
+        console.log(`${i + 1}. ${colors.bright}${profile.name}${colors.reset} (${count} kebiasaan)`);
         console.log(`   Bergabung: ${new Date(profile.joinDate).toLocaleDateString('id-ID')}`);
     });
     
     UI.separator();
-    console.log(`${tracker.profiles.length + 1}. ${CONFIG.colors.green}Buat Profil Baru${CONFIG.colors.reset}`);
+    console.log(`${tracker.profiles.length + 1}. ${colors.green}Buat Profil Baru${colors.reset}`);
     UI.separator();
     
     let validChoice = false;
@@ -1527,7 +1525,7 @@ async function handleReturningUser(tracker) {
             tracker.currentProfile = selected;
             tracker.loadHabitsForProfile(selected.id);
             
-            console.log(`\n${CONFIG.colors.green}[OK] Selamat datang kembali, ${selected.name}!${CONFIG.colors.reset}`);
+            console.log(`\n${colors.green}[OK] Selamat datang kembali, ${selected.name}!${colors.reset}`);
             console.log(`[INFO] ${tracker.habits.length} kebiasaan dimuat.`);
             
             displayPendingNotification(tracker); // Show pending habits notification
@@ -1548,9 +1546,9 @@ async function handleReturningUser(tracker) {
 function displayPendingNotification(tracker) {
     const pending = tracker.habits.filter(h => !h.isCompletedToday()).length;
     if (pending > 0) {
-        console.log(`Anda memiliki ${CONFIG.colors.yellow}${pending} kebiasaan${CONFIG.colors.reset} yang belum diselesaikan hari ini.`);
+        console.log(`Anda memiliki ${colors.yellow}${pending} kebiasaan${colors.reset} yang belum diselesaikan hari ini.`);
     } else if (tracker.habits.length > 0) {
-        console.log(CONFIG.colors.green + 'Luar biasa! Semua kebiasaan hari ini sudah selesai! 🎉' + CONFIG.colors.reset);
+        console.log(colors.green + 'Luar biasa! Semua kebiasaan hari ini sudah selesai! 🎉' + colors.reset);
     }
 }
 
