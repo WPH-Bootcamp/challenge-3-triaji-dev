@@ -1,3 +1,5 @@
+'use strict';
+
 // ╔════════════════════════════════════════════╗
 // ║ HABIT TRACKER CLI - OPTIMIZED VERSION      ║
 // ╠════════════════════════════════════════════╣
@@ -108,7 +110,7 @@ const FileManager = {
 
 // Functions: 
 //   - askQuestion  --->  Untuk menanyakan input pengguna
-//   - askCategor   --->  Untuk menanyakan kategori habit
+//   - askCategory  --->  Untuk menanyakan kategori habit
 
 
 // Flow: Pause Reminder -> Ask Question -> Resume Reminder -> Reset Reminder -> Return Answer
