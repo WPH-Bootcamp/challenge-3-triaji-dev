@@ -10,6 +10,8 @@
 
 // IMPORT MODULES
 
+import readline from 'readline';
+
 const readline = require('readline');
 const fs = require('fs');
 const path = require('path');
@@ -1464,16 +1466,16 @@ async function main() {
     console.log('Bangun kebiasaan baik, capai tujuan Anda!');
     console.log('═'.repeat(60) + colors.reset);
     
-    const tracker = new HabitTracker();
+    const tracker = new HabitTracker();     // Inisialisasi HabitTracker
     
-    if (tracker.profiles.length === 0) {
-        await setupFirstTimeUser(tracker); // First-time user flow
+    if (tracker.profiles.length === 0) {  
+        await setupFirstTimeUser(tracker);  // First-time user flow
     } else {
         await handleReturningUser(tracker); // Returning user flow
     }
     
-    tracker.startReminder();
-    await handleMainMenu(tracker);
+    tracker.startReminder();                // Mulai pengingat kebiasaan
+    await handleMainMenu(tracker);          // Tangani menu utama
 }
 
 // ██ First-time user setup
