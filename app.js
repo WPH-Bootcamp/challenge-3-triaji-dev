@@ -147,7 +147,7 @@ async function askCategory(tracker) {
     if (choice.toUpperCase() === 'L') {
         return (await askQuestion('Nama kategori: ', tracker)) || 'Umum';
     }
-    return categoryMap[choice] || 'Umum';
+    return categoryMap[choice] ?? 'Umum';
 }
 
 // ╔════════════════════════════════════════════╗
@@ -168,7 +168,7 @@ async function askCategory(tracker) {
 
 class UserProfile {
     constructor(name, id = null) {
-        this.id = id || Date.now() + Math.random();
+        this.id = id ?? Date.now() + Math.random();
         this.name = name;
         this.joinDate = new Date();
         this.currentStreak = 0;
@@ -478,7 +478,7 @@ class HabitTracker {
             const data = FileManager.read() || {};
             if (data.profileHabits?.[deletedId]) delete data.profileHabits[deletedId];
             data.profiles = this.profiles;
-            data.currentProfileId = this.currentProfile?.id || null;
+            data.currentProfileId = this.currentProfile?.id ?? null;
             FileManager.write(data);
             
             UI.success(`Profil "${profile.name}" berhasil dihapus.`);
@@ -506,12 +506,12 @@ class HabitTracker {
         if (data?.profileHabits?.[profileId]) {
             this.habits = data.profileHabits[profileId].map(hData => {
                 const habit = new Habit(
-                    hData.name || 'Kebiasaan',
-                    hData.targetFrequency || DAYS_IN_WEEK,
-                    hData.category || 'Umum'
+                    hData.name ?? 'Kebiasaan',
+                    hData.targetFrequency ?? DAYS_IN_WEEK,
+                    hData.category ?? 'Umum'
                 );
                 habit.id = hData.id;
-                habit.completions = hData.completions || [];
+                habit.completions = hData.completions ?? [];
                 habit.createdAt = hData.createdAt;
                 return habit;
             });
@@ -533,7 +533,7 @@ class HabitTracker {
     // @return {number} Jumlah kebiasaan untuk profil tertentu
     getProfileHabitsCount(profileId) {
         const data = FileManager.read();
-        return data?.profileHabits?.[profileId]?.length || 0;
+        return data?.profileHabits?.[profileId]?.length ?? 0;
     }
     
     // ██ DISPLAY METHODS 
@@ -858,9 +858,9 @@ class HabitTracker {
     
     // Flow: Read Existing Data -> Update Profiles and Current Profile -> Update Habits for Current Profile -> Write Back to File
     saveToFile() {
-        const data = FileManager.read() || { profileHabits: {} };
+        const data = FileManager.read() ?? { profileHabits: {} };
         data.profiles = this.profiles;
-        data.currentProfileId = this.currentProfile?.id || null;
+        data.currentProfileId = this.currentProfile?.id ?? null;
         
         if (this.currentProfile) {
             data.profileHabits[this.currentProfile.id] = this.habits;
@@ -880,10 +880,10 @@ class HabitTracker {
         
         if (data.profiles) {
             this.profiles = data.profiles.map(pData => {
-                const profile = new UserProfile(pData.name || 'User', pData.id);
-                profile.joinDate = pData.joinDate || new Date();
-                profile.currentStreak = pData.currentStreak || 0;
-                profile.longestStreak = pData.longestStreak || 0;
+                const profile = new UserProfile(pData.name ?? 'User', pData.id);
+                profile.joinDate = pData.joinDate ?? new Date();
+                profile.currentStreak = pData.currentStreak ?? 0;
+                profile.longestStreak = pData.longestStreak ?? 0;
                 return profile;
             });
         }
