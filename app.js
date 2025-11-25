@@ -475,7 +475,7 @@ class HabitTracker {
                 else this.habits = [];
             }
             
-            const data = FileManager.read() || {};
+            const data = FileManager.read() ?? {};
             if (data.profileHabits?.[deletedId]) delete data.profileHabits[deletedId];
             data.profiles = this.profiles;
             data.currentProfileId = this.currentProfile?.id ?? null;
@@ -523,7 +523,7 @@ class HabitTracker {
     saveCurrentProfileHabits() {
         if (!this.currentProfile) return;
         
-        const data = FileManager.read() || {};
+        const data = FileManager.read() ?? {};
         if (!data.profileHabits) data.profileHabits = {};
         data.profileHabits[this.currentProfile.id] = this.habits;
         FileManager.write(data);
